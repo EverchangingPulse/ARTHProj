@@ -1,42 +1,92 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#10252b">
-  <meta name="description" content="Roman inscription image tracking and augmented reality tools.">
-  <title>ARTHProj — Roman Inscription AR</title>
-  <style>
-    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #0a1519; color: #f2f5f3; }
-    * { box-sizing: border-box; }
-    body { margin: 0; min-height: 100vh; display: grid; place-items: center; }
-    main { width: min(92vw, 580px); padding: 2.5rem 0; }
-    h1 { font-size: clamp(2rem, 8vw, 3rem); margin: .35rem 0; }
-    p { color: #b7c8c6; line-height: 1.6; }
-    .kicker { letter-spacing: .18em; font-weight: 700; text-transform: uppercase; color: #7fe0b4; font-size: .75rem; }
-    .card { display: block; color: inherit; padding: 1.2rem 1.4rem; margin-top: .9rem; border-radius: 1rem; border: 1px solid #3c5959; text-decoration: none; }
-    .card:hover, .card:focus-visible { border-color: #8cd6b6; background: #163036; }
-    .primary { background: #1c5949; border-color: #2c9477; }
-    .card strong { display: block; font-size: 1.07rem; }
-    .card span { display: block; color: #bfceca; font-size: .9rem; margin-top: .35rem; }
-    footer { font-size: .82rem; color: #a6b5b4; padding-top: 1.5rem; }
-  </style>
-</head>
-<body>
-  <main>
-    <div class="kicker">Augmented Reality Treasure Hunt</div>
-    <h1>Roman Inscription AR</h1>
-    <p>Use your phone to recognize an ancient stone inscription and reveal nine highlighted letters. Allow access to your camera when prompted.</p>
-    <a class="card primary" href="https://jolly-lab-cef2.daviedeiana5.workers.dev/">
-      <strong>Open AR Camera</strong><span>Launch the existing image-tracking application</span>
-    </a>
-    <a class="card" href="https://jolly-lab-cef2.daviedeiana5.workers.dev/reference.html">
-      <strong>Reference image</strong><span>View the original Roman inscription</span>
-    </a>
-    <a class="card" href="https://jolly-lab-cef2.daviedeiana5.workers.dev/overlay-preview.html">
-      <strong>Highlighted letters</strong><span>See the nine green letters</span>
-    </a>
-    <footer>ARTHProj is open source. The AR engine currently runs on the linked Cloudflare deployment; this GitHub Pages site provides its navigation.</footer>
-  </main>
-</body>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+    <meta name="theme-color" content="#0a1118">
+    <meta name="description" content="Live image-tracking augmented reality, available as a Telegram Mini App.">
+    <title>AR Lens · Telegram Mini App</title>
+    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="./styles.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="camera-stage" aria-label="Augmented reality camera">
+        <a-scene id="ar-scene"
+          embedded
+          mindar-image="imageTargetSrc: ; autoStart: false; uiLoading: no; uiScanning: no; uiError: no;"
+          vr-mode-ui="enabled: false"
+          device-orientation-permission-ui="enabled: false"
+          renderer="colorManagement: true; precision: mediump; antialias: true">
+          <a-assets timeout="30000">
+            <img id="overlay-asset" src="./assets/overlay.png" crossorigin="anonymous" alt="">
+          </a-assets>
+          <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+          <a-entity id="image-target" mindar-image-target="targetIndex: 0">
+            <a-plane id="overlay-plane"
+              src="#overlay-asset"
+              position="0 0 0.008"
+              width="1"
+              height="0.685547"
+              material="shader: flat; transparent: true; depthWrite: false; side: double; opacity: 1">
+            </a-plane>
+          </a-entity>
+        </a-scene>
+
+        <div class="camera-vignette" aria-hidden="true"></div>
+
+        <header class="topbar">
+          <div class="brand">
+            <span class="brand-icon" aria-hidden="true">◇</span>
+            <div>
+              <strong>AR LENS</strong>
+              <span>IMAGE TRACKING</span>
+            </div>
+          </div>
+          <span id="tracking-pill" class="tracking-pill" aria-live="polite">
+            <span class="pulse-dot"></span>
+            <span id="tracking-label">READY</span>
+          </span>
+        </header>
+
+        <div id="camera-placeholder" class="camera-placeholder">
+          <div class="target-reticle" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+            <div class="target-glyph">◎</div>
+          </div>
+          <div class="placeholder-content">
+            <h1>Scan the Roman inscription.</h1>
+            <p>Point your camera at the unmarked stone inscription. Nine green highlighted letters will appear in place.</p>
+          </div>
+        </div>
+
+        <div class="bottom-panel">
+          <div class="status-line" role="status" aria-live="polite">
+            <span id="status-indicator" class="status-indicator"></span>
+            <span id="status-text">Camera is off</span>
+          </div>
+          <div class="button-row">
+            <button id="start-btn" type="button" class="button button-primary">Start camera</button>
+            <button id="stop-btn" type="button" class="button button-secondary" disabled>Stop</button>
+          </div>
+          <div class="setting-row">
+            <label for="opacity-slider">Overlay opacity <output id="opacity-output">100%</output></label>
+            <input id="opacity-slider" type="range" min="20" max="100" value="100" step="1">
+          </div>
+          <div class="actions-row">
+            <a href="./reference.html" target="_blank" rel="noopener noreferrer">Reference image</a>
+            <a href="./overlay-preview.html" target="_blank" rel="noopener noreferrer">Preview overlay</a>
+            <label class="upload-action" for="overlay-upload">Change overlay</label>
+            <input id="overlay-upload" type="file" accept="image/png,image/jpeg,image/webp" hidden>
+            <button id="external-btn" class="text-button" type="button">Open in browser</button>
+          </div>
+        </div>
+      </section>
+    </main>
+    <script type="module" src="./ar-app.js?v=1.1.1"></script>
+  </body>
 </html>

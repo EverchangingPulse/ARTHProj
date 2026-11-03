@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#0a1118">
+    <title>AR Lens · Build target</title>
+    <link rel="stylesheet" href="./reference.css">
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
+  </head>
+  <body>
+    <main>
+      <a class="back" href="./">← Back to camera</a>
+      <p class="eyebrow">ONE-TIME SETUP</p>
+      <h1>Compile inscription</h1>
+      <p>Generate feature data from the Roman inscription on a computer, then place <code>targets.mind</code> in <code>public/assets/</code> before deployment. The camera can compile its own copy if this step is skipped.</p>
+      <figure>
+        <img src="./assets/inscription-reference.jpg" alt="Roman stone inscription reference photograph">
+      </figure>
+      <button id="compile-btn" type="button">Compile and download .mind</button>
+      <p id="progress" role="status" aria-live="polite">Not started.</p>
+      <a href="https://hiukim.github.io/mind-ar-js-doc/tools/compile" target="_blank" rel="noopener noreferrer">Alternative: official MindAR compiler</a>
+    </main>
+    <script type="module">
+      import { TargetCompiler } from "./target-compiler.js?v=1.1.1";
+      const button = document.getElementById("compile-btn");
+      const progress = document.getElementById("progress");
+      button.addEventListener("click", async () => {
+        button.disabled = true;
+        try {
+          const url = await new TargetCompiler().prepare(message => { progress.textContent = message; });
+          const response = await fetch(url);
+          if (!response.ok) throw new Error("Could not read the compiled target.");
+          const blob = await response.blob();
+          const objectUrl = URL.createObjectURL(blob);
+          const anchor = document.createElement("a");
+          anchor.href = objectUrl;
+          anchor.download = "targets.mind";
+          anchor.click();
+          URL.revokeObjectURL(objectUrl);
+          progress.textContent = "Compiled target downloaded. Put targets.mind in public/assets/ and redeploy.";
+        } catch (error) {
+          progress.textContent = error?.message ?? "Compilation failed";
+        } finally {
+          button.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>
