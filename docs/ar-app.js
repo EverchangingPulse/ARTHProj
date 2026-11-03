@@ -162,6 +162,7 @@ class ArExperience {
     this.starting = true;
     const generation = ++this.generation;
     this.frozen = false;
+    this.activeAnchor = null;
     this.flash.hidden = true;
     this.view.update("Requesting camera permission…", "loading");
 
@@ -187,6 +188,7 @@ class ArExperience {
 
       const system = this.scene.systems["mindar-image-system"];
       if (!system) throw new Error("MindAR image tracking is not available.");
+      this.installResizeGuard(system);
       system.imageTargetSrc = targetUrl;
       this.preview.close();
       this.running = true;
@@ -371,6 +373,16 @@ class ArExperience {
     if (this.starting) throw new Error("Camera is still starting. Try again shortly.");
     this.stop();
     await this.start();
+  }
+
+  installResizeGuard(system) {
+    if (system.arthResizeGuarded) return;
+    const resize = system._resize;
+    system._resize = function () {
+      if (!this.video || !this.controller) return;
+      return resize.call(this);
+    };
+    system.arthResizeGuarded = true;
   }
 
   stopTracking() {
