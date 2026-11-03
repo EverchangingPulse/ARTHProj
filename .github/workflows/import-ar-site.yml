@@ -32,7 +32,6 @@ jobs:
               "404.html": "aeba967d44f2e1a841f96378a7b81b329f4b06cb4449324a6f22809f1a1eea55",
               "ar-app.js": "03f14233c622b3eafc5733852dcd11cc58b0edbb4fdfc7002a241a43b05014dd",
               "ar-settings.js": "071fdf178d5774241b99ea2c5c8cc5bcde2b820ede438f922b9c88ca9c461c62",
-              "assets/icon.svg": "9a8a09e3ab95b4b658fa44ae40688ed5d4178e3b4d54d5d5f027253c",
               "assets/inscription-highlighted.jpg": "d39b63ddf63e3f79b84aba72bc3a3e002779311b3295bcb84b4d5b40d3f63ec2",
               "assets/inscription-reference.jpg": "22272f3b3aa9600194314bc366b6c92461463d81c3bd2ae6d8d868d1b9e8049d",
               "assets/inscription-tracking.png": "6d383226d28c4dc988e87fe94fc44e1a253464602475d8f89b8d3e95d2bac2d0",
