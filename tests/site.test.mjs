@@ -106,7 +106,7 @@ test("a separate overlay is anchored to every configured image", () => {
   const manifest = text("target-manifest.js");
   assert.match(app, /this\.targets\.forEach\(\(target, index\)/);
   assert.match(app, /target\.overlayImage/);
-  assert.match(manifest, /"config\/targets.json"/);
+  assert.match(manifest, /"\.\/config\/targets.json"/);
   assert.match(manifest, /overlayRatio/);
   assert.match(manifest, /trackingRevision/);
 });

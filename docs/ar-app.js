@@ -1,6 +1,6 @@
-import { loadAppSettings } from "./app-config.js";
-import { loadTargets } from "./target-manifest.js";
-import { TargetCompiler } from "./target-compiler.js";
+import { loadAppSettings } from "./app-config.js?v=3.0.0";
+import { loadTargets } from "./target-manifest.js?v=3.0.0";
+import { TargetCompiler } from "./target-compiler.js?v=3.0.0";
 
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
 
