@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "camera": {
+    "autoStart": true
+  },
+  "tracking": {
+    "maxTrack": 1
+  },
+  "overlay": {
+    "opacity": 1
+  },
+  "scanner": {
+    "enabled": true
+  },
+  "capture": {
+    "autoFreeze": true,
+    "freezeDelayMs": 700,
+    "shutterSound": true
+  }
+}

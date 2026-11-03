@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "targets": [
+    {
+      "id": "roman-inscription",
+      "name": "Roman inscription",
+      "referenceImage": "./assets/inscription-tracking.png",
+      "overlayImage": "./assets/overlay.png",
+      "trackingRevision": "roman-target-v1",
+      "overlayRevision": "green-letters-v1"
+    }
+  ]
+}

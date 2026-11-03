@@ -63,7 +63,7 @@
         </div>
         <div class="placeholder-content">
           <h1>Scan a reference picture</h1>
-          <p>Camera access is requested automatically. Each recognized picture displays its own symbols overlay.</p>
+          <p>Camera access is requested automatically. Each recognized picture displays its administrator-configured symbols overlay.</p>
         </div>
       </div>
 
@@ -79,31 +79,6 @@
           <button id="save-btn" class="button button-secondary" type="button" hidden>Save picture</button>
           <button id="stop-btn" class="button button-secondary" type="button" disabled>Stop</button>
         </div>
-        <div class="setting-row">
-          <label for="opacity-slider">Symbols opacity <output id="opacity-output">100%</output></label>
-          <input id="opacity-slider" type="range" min="20" max="100" step="1" value="100">
-        </div>
-        <div class="capture-options">
-          <label class="freeze-option">
-            <input id="auto-freeze" type="checkbox" checked>
-            Freeze automatically after a stable match
-          </label>
-          <label class="freeze-option">
-            <input id="shutter-sound" type="checkbox" checked>
-            Mechanical shutter sound
-          </label>
-        </div>
-        <details id="target-editor" class="target-editor">
-          <summary>Manage reference pictures and PNG overlays</summary>
-          <div id="targets-list" class="targets-list" aria-live="polite"></div>
-          <form id="pair-form" class="pair-form">
-            <label>Picture name<input id="pair-name" type="text" maxlength="64" placeholder="e.g. Temple carving" required></label>
-            <label>Reference picture (JPG / PNG / WebP)<input id="pair-reference" type="file" accept="image/png,image/jpeg,image/webp" required></label>
-            <label>Transparent symbols overlay (PNG)<input id="pair-overlay" type="file" accept="image/png" required></label>
-            <button class="button button-primary" type="submit">Add picture + PNG overlay</button>
-          </form>
-          <p class="storage-note">Each reference picture has its own transparent symbols PNG. Use an overlay with the same aspect ratio and letter positions as its reference. Personal pairs and customized overlays stay on this device; other Telegram users will not receive them automatically.</p>
-        </details>
         <div class="actions-row">
           <a href="./reference.html" target="_blank" rel="noopener noreferrer">Roman reference</a>
           <a href="./overlay-preview.html" target="_blank" rel="noopener noreferrer">Green symbols</a>
@@ -112,6 +87,6 @@
       </div>
     </section>
   </main>
-  <script type="module" src="./ar-app.js?v=2.0.0"></script>
+  <script type="module" src="./ar-app.js?v=3.0.0"></script>
 </body>
 </html>

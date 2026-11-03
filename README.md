@@ -13,17 +13,17 @@ Open-source Roman-inscription augmented reality treasure hunt with a Telegram gr
 
 The original AR camera and its inscription assets have been **migrated into `docs/` in this repository**. Enable GitHub Pages to publish the complete website. GitHub Pages cannot run the Telegram bot's webhook handler; the handler still deploys to a Cloudflare Worker.
 
-## Personalized AR pictures and captured photos
+## Administrator-controlled targets and settings
 
-The public website at https://everchangingpulse.github.io/ARTHProj/ automatically asks for camera permission as soon as the page loads. Some Android or Telegram browsers restrict unattended camera access; if the request fails, use **Retry camera** or **Open in browser**. HTTPS is required.
+The live application **does not allow visitors to add reference pictures or replace symbols**. All recognized pictures and their associated PNG overlays are declared in [`docs/config/targets.json`](docs/config/targets.json), and all camera/scan/capture settings are defined in [`docs/config/settings.json`](docs/config/settings.json).
 
-To add another recognized picture, open **Manage reference pictures and PNG overlays**, enter a name, select its photograph (JPEG, PNG, WebP), and select a transparent PNG containing the symbols at the exact positions they should occupy over that picture. The AR scanner recognizes the reference picture and anchors **that picture's own PNG overlay** to it. The original Roman inscription remains included as a default target. You can also replace the PNG for any target without changing its reference image.
+Only contributors with GitHub repository write access can change the source assets or configuration. This makes a new picture/PNG pair available to every visitor after the site deploys. No passwords or secrets are stored in client-side JSON.
 
-Up to five additional image/overlay pairs are stored locally per browser in IndexedDB. The app resizes reference images to a maximum dimension of 1024 pixels and fits their transparent overlays to the matching image rectangle. The images are never uploaded to Telegram or GitHub by the web application. Clearing site data, switching devices, or using a different Telegram webview may remove access to those local custom pairs. To publish targets for **all visitors**, commit their images to the repository and register the new entries in \`docs/target-manifest.js\`.
+**Add another picture:** upload a reference JPG/PNG/WebP and transparent symbol PNG into `docs/assets/`, then register their paths and revision strings in the targets configuration. The Roman inscription remains the default pair. **Change behavior:** edit `camera.autoStart`, `tracking.maxTrack`, `overlay.opacity`, `scanner.enabled`, `capture.autoFreeze`, `capture.freezeDelayMs` or `capture.shutterSound` in the settings file.
 
-The camera draws a moving green sonar overlay while it searches for pictures. After a target is continuously recognized for 700 milliseconds, the scanner disappears, a still frame is captured with the anchored symbols, an original mechanical shutter sound is attempted, and a neutral gray flash transitions to a static Polaroid-style photo. Use **Save picture** to download the bordered image or **Scan again** to restart live scanning. Disable **Freeze automatically** to use the manual **Freeze frame** button instead.
+See [`docs/ADMIN.md`](docs/ADMIN.md) for the complete Android/GitHub workflow and sample configuration entries.
 
-Browser autoplay restrictions can prevent sound before the visitor interacts with the page; the **Mechanical shutter sound** toggle and touching the page can unlock audio. The scanner and flash respect reduced-motion settings. Real device image tracking, camera permissions, sound playback, and screenshot composition must be validated in Chrome and the Telegram Android browser.
+The camera automatically asks for permission when `camera.autoStart` is enabled. The sonar overlay appears during searching, and a successful stable recognition can produce a gray shutter flash, sound (subject to browser autoplay restrictions), and a static Polaroid screenshot. The visitor can scan again, manually freeze, stop, or save the image.
 
 ## Android-only deployment
 
@@ -34,7 +34,7 @@ Browser autoplay restrictions can prevent sound before the visitor interacts wit
 3. Select **Deploy from a branch**, branch `main`, folder `/docs`, then save.
 4. GitHub will publish `https://everchangingpulse.github.io/ARTHProj/` once Pages finishes deploying.
 
-Once enabled, open `https://everchangingpulse.github.io/ARTHProj/` to use the full camera application. The first camera launch compiles the tracking target locally if no precompiled `targets.mind` is available. External MindAR and A-Frame libraries load from public CDNs.
+Once enabled, open `https://everchangingpulse.github.io/ARTHProj/` to use the full camera application. The first camera launch compiles the configured tracking targets locally and caches them for later visits. External MindAR and A-Frame libraries load from public CDNs.
 
 ### 2. Create the Cloudflare Worker
 
@@ -88,12 +88,14 @@ To run the Worker locally, copy `worker/.dev.vars.example` to `worker/.dev.vars`
 
 - `docs/index.html` and `docs/ar-app.js`: camera UI, MindAR tracking, and Telegram Mini App integration.
 - `docs/target-compiler.js`: the image-target compiler and local cache.
+- `docs/config/targets.json`: administrator-defined picture/PNG pairs.
+- `docs/config/settings.json`: administrator-defined camera, tracking, and capture settings.
 - `docs/assets/inscription-reference.jpg`: the original photograph.
 - `docs/assets/inscription-tracking.png`: the recognition image.
 - `docs/assets/overlay.png`: transparent green letters.
 - `docs/overlay-preview.html`, `docs/reference.html`, and `docs/compile.html`: supporting tools.
 
-The full frontend was transferred from the existing Cloudflare site with SHA-256 verification using `.github/workflows/import-ar-site.yml`. All five image assets are committed to GitHub. A precompiled `targets.mind` file is not yet included; live camera tracking still requires testing on Android inside Telegram.
+The full frontend was transferred from the existing Cloudflare site with SHA-256 verification using `.github/workflows/import-ar-site.yml`. All five image assets are committed to GitHub. Live camera tracking, audio and Polaroid capture still require testing on Android inside Telegram.
 
 ## Security and limitations
 

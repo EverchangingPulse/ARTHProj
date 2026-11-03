@@ -1,6 +1,5 @@
-import { arSettings } from "./ar-settings.js";
-import { projectTargets } from "./target-manifest.js";
-import { TargetLibrary } from "./target-library.js";
+import { loadAppSettings } from "./app-config.js";
+import { loadTargets } from "./target-manifest.js";
 import { TargetCompiler } from "./target-compiler.js";
 
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
@@ -18,6 +17,7 @@ class StatusView {
     this.save = document.getElementById("save-btn");
     this.stop = document.getElementById("stop-btn");
     this.scanner = document.getElementById("scanner-hud");
+    this.scannerEnabled = true;
     this.polaroid = document.getElementById("polaroid");
   }
 
@@ -39,7 +39,7 @@ class StatusView {
     this.save.hidden = state !== "frozen";
     this.capture.disabled = state !== "found";
     this.stop.disabled = !["searching", "found"].includes(state);
-    this.scanner.hidden = !["searching", "found"].includes(state);
+    this.scanner.hidden = !["searching", "found"].includes(state) || !this.scannerEnabled;
     this.polaroid.hidden = state !== "frozen";
   }
 }
@@ -130,8 +130,7 @@ class MechanicalShutter {
 }
 
 class ArExperience {
-  constructor(library = new TargetLibrary(), compiler = new TargetCompiler()) {
-    this.library = library;
+  constructor(compiler = new TargetCompiler()) {
     this.compiler = compiler;
     this.view = new StatusView();
     this.scene = document.getElementById("ar-scene");
@@ -149,14 +148,15 @@ class ArExperience {
     this.generation = 0;
     this.freezeTimer = null;
     this.activeAnchor = null;
-    this.opacity = arSettings.initialOpacity;
-    this.autoFreeze = arSettings.autoFreeze;
+    this.opacity = 1;
+    this.autoFreeze = true;
+    this.freezeDelayMs = 700;
 
     this.scene.addEventListener("arReady", () => this.onReady());
     this.scene.addEventListener("arError", () => this.onError());
   }
 
-  async start() {
+  async start(preloadedSettings = null) {
     if (this.starting || this.running) return;
     this.stopTracking();
     this.starting = true;
@@ -174,10 +174,18 @@ class ArExperience {
 
     try {
       const cameraPermission = this.preview.open();
-      const targetsPromise = this.library.list().catch(() => projectTargets);
-      const [, targets] = await Promise.all([cameraPermission, targetsPromise]);
+      const configuration = Promise.all([
+        preloadedSettings ? Promise.resolve(preloadedSettings) : loadAppSettings(),
+        loadTargets()
+      ]);
+      const [, [settings, targets]] = await Promise.all([cameraPermission, configuration]);
       if (generation !== this.generation) return;
 
+      this.opacity = settings.overlay.opacity;
+      this.autoFreeze = settings.capture.autoFreeze;
+      this.freezeDelayMs = settings.capture.freezeDelayMs;
+      this.sound.enabled = settings.capture.shutterSound;
+      this.view.scannerEnabled = settings.scanner.enabled;
       this.targets = targets;
       await this.waitForScene();
       await this.installAnchors();
@@ -190,6 +198,7 @@ class ArExperience {
       if (!system) throw new Error("MindAR image tracking is not available.");
       this.installResizeGuard(system);
       system.imageTargetSrc = targetUrl;
+      system.maxTrack = settings.tracking.maxTrack;
       this.preview.close();
       this.running = true;
       this.starting = false;
@@ -261,7 +270,7 @@ class ArExperience {
         if (this.running && this.activeAnchor === anchor && anchor.entity.object3D.visible) {
           void this.freeze();
         }
-      }, arSettings.freezeDelayMs);
+      }, this.freezeDelayMs);
     }
   }
 
@@ -420,118 +429,6 @@ class ArExperience {
   }
 }
 
-class TargetEditor {
-  constructor(app) {
-    this.app = app;
-    this.library = app.library;
-    this.list = document.getElementById("targets-list");
-    this.form = document.getElementById("pair-form");
-    this.form.addEventListener("submit", event => void this.add(event));
-  }
-
-  async render() {
-    let targets;
-    try {
-      targets = await this.library.list();
-    } catch {
-      this.list.textContent = "Local storage is unavailable. Built-in reference is still supported.";
-      return;
-    }
-    this.list.replaceChildren();
-    for (const target of targets) {
-      const row = document.createElement("div");
-      row.className = "target-row";
-      const title = document.createElement("span");
-      title.textContent = target.name + (target.local ? " (this device)" : " (included)");
-      row.appendChild(title);
-
-      const controls = document.createElement("div");
-      controls.className = "target-controls";
-      const label = document.createElement("label");
-      label.textContent = "Change PNG";
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/png";
-      input.setAttribute("aria-label", "Replace PNG symbols overlay for " + target.name);
-      input.addEventListener("change", () => {
-        if (input.files?.[0]) void this.replaceOverlay(target.id, input.files[0]);
-      });
-      label.appendChild(input);
-      controls.appendChild(label);
-
-      if (target.overlayCustomized) {
-        const reset = document.createElement("button");
-        reset.type = "button";
-        reset.className = "text-button";
-        reset.textContent = "Default PNG";
-        reset.addEventListener("click", () => void this.restoreOverlay(target.id));
-        controls.appendChild(reset);
-      }
-
-      if (target.local) {
-        const remove = document.createElement("button");
-        remove.type = "button";
-        remove.className = "text-button";
-        remove.textContent = "Remove";
-        remove.addEventListener("click", () => void this.remove(target.id));
-        controls.appendChild(remove);
-      }
-      row.appendChild(controls);
-      this.list.appendChild(row);
-    }
-  }
-
-  async add(event) {
-    event.preventDefault();
-    const button = this.form.querySelector('button[type="submit"]');
-    button.disabled = true;
-    try {
-      await this.library.add(
-        document.getElementById("pair-name").value,
-        document.getElementById("pair-reference").files?.[0],
-        document.getElementById("pair-overlay").files?.[0]
-      );
-      this.form.reset();
-      await this.app.refreshTargets();
-      await this.render();
-    } catch (error) {
-      this.app.view.update(error?.message || "Could not add picture.", "error");
-    } finally {
-      button.disabled = false;
-    }
-  }
-
-  async replaceOverlay(id, file) {
-    try {
-      await this.library.replaceOverlay(id, file);
-      await this.app.refreshTargets();
-      await this.render();
-    } catch (error) {
-      this.app.view.update(error?.message || "Could not replace PNG.", "error");
-    }
-  }
-
-  async restoreOverlay(id) {
-    try {
-      await this.library.restoreDefaultOverlay(id);
-      await this.app.refreshTargets();
-      await this.render();
-    } catch (error) {
-      this.app.view.update(error?.message || "Could not restore default PNG.", "error");
-    }
-  }
-
-  async remove(id) {
-    try {
-      await this.library.remove(id);
-      await this.app.refreshTargets();
-      await this.render();
-    } catch (error) {
-      this.app.view.update(error?.message || "Could not remove picture.", "error");
-    }
-  }
-}
-
 class TelegramIntegration {
   constructor() {
     this.app = window.Telegram?.WebApp;
@@ -547,39 +444,29 @@ class TelegramIntegration {
 
 function initialize() {
   const app = new ArExperience();
-  const editor = new TargetEditor(app);
   const telegram = new TelegramIntegration();
-  const slider = document.getElementById("opacity-slider");
-  const opacityOutput = document.getElementById("opacity-output");
-  slider.value = String(Math.round(arSettings.initialOpacity * 100));
-  opacityOutput.value = slider.value + "%";
 
-  slider.addEventListener("input", () => {
-    opacityOutput.value = slider.value + "%";
-    app.setOpacity(Number(slider.value) / 100);
-  });
-  document.getElementById("auto-freeze").addEventListener("change", event => {
-    app.autoFreeze = event.target.checked;
-    if (!app.autoFreeze) app.cancelFreeze();
-  });
-  document.getElementById("shutter-sound").addEventListener("change", event => {
-    app.sound.enabled = event.target.checked;
-    if (app.sound.enabled) app.sound.unlock();
-  });
-  document.addEventListener("pointerdown", () => app.sound.unlock(), { once: true });
   document.getElementById("retry-btn").addEventListener("click", () => void app.start());
   document.getElementById("scan-btn").addEventListener("click", () => void app.start());
   document.getElementById("stop-btn").addEventListener("click", () => app.stop());
-  document.getElementById("capture-btn").addEventListener("click", () => void app.freeze());
+  document.getElementById("capture-btn").addEventListener("click", () => {
+    app.sound.unlock();
+    void app.freeze();
+  });
   document.getElementById("save-btn").addEventListener("click", () => app.savePicture());
   document.getElementById("external-btn").addEventListener("click", () => telegram.openExternal());
+  document.addEventListener("pointerdown", () => app.sound.unlock(), { once: true });
   window.addEventListener("pagehide", () => {
     app.stop();
-    app.library.releaseUrls();
     app.compiler.dispose();
   });
-  void editor.render();
-  void app.start();
+
+  void loadAppSettings().then(settings => {
+    if (settings.camera.autoStart) return app.start(settings);
+    app.view.update("Camera ready. Tap Retry camera to begin.", "stopped");
+  }).catch(error => {
+    app.view.update(error?.message || "Could not read AR settings.", "error");
+  });
 }
 
 initialize();

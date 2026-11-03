@@ -1,5 +1,3 @@
-import { arSettings } from "./ar-settings.js";
-
 class ImageTargetCache {
   async open() {
     return new Promise((resolve, reject) => {
@@ -70,17 +68,6 @@ export class TargetCompiler {
   }
 
   async compile(targets, key, onProgress) {
-    if (targets.length === 1 && targets[0].id === "roman-inscription") {
-      try {
-        const response = await fetch(arSettings.compiledTargetFile, { method: "HEAD", cache: "no-cache" });
-        if (response.ok && !response.headers.get("content-type")?.includes("text/html")) {
-          onProgress("Using compiled Roman inscription target…");
-          return this.swapUrl(arSettings.compiledTargetFile, key);
-        }
-      } catch {
-        onProgress("Checking local tracking cache…");
-      }
-    }
 
     let blob;
     try {
