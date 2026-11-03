@@ -1,4 +1,5 @@
-import { loadAppSettings } from "./app-config.js?v=3.1.0";
+import { loadAppSettings } from "./app-config.js?v=4.0.0";
+import { NorthCompass } from "./north-compass.js?v=4.0.0";
 import { loadTargets } from "./target-manifest.js?v=3.0.0";
 import { TargetCompiler } from "./target-compiler.js?v=3.0.0";
 
@@ -447,6 +448,7 @@ class TelegramIntegration {
 function initialize() {
   const app = new ArExperience();
   const telegram = new TelegramIntegration();
+  const compass = new NorthCompass(document.getElementById("compass-panel"));
 
   document.getElementById("retry-btn").addEventListener("click", () => void app.start());
   document.getElementById("scan-btn").addEventListener("click", () => void app.start());
@@ -460,11 +462,16 @@ function initialize() {
   document.addEventListener("pointerdown", () => app.sound.unlock(), { once: true });
   window.addEventListener("pagehide", () => {
     app.stop();
+    compass.stop();
     app.compiler.dispose();
   });
 
   void loadAppSettings().then(settings => {
-    if (settings.camera.autoStart) return app.start(settings);
+    compass.start(settings.compass);
+    if (settings.camera.autoStart) {
+      return app.start(settings).finally(() => compass.requestLocation());
+    }
+    compass.requestLocation();
     app.view.update("Camera ready. Tap Retry camera to begin.", "stopped");
   }).catch(error => {
     app.view.update(error?.message || "Could not read AR settings.", "error");
