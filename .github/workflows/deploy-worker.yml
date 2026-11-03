@@ -1,0 +1,53 @@
+name: Deploy Telegram Bot Worker
+
+on:
+  workflow_dispatch:
+    inputs:
+      worker_url:
+        description: "Your Cloudflare Worker URL, e.g. https://arthproj-telegram-bot.example.workers.dev"
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install Wrangler
+        working-directory: worker
+        run: npm install --no-audit --no-fund
+      - name: Run tests
+        working-directory: worker
+        run: npm test
+      - name: Deploy Cloudflare Worker
+        working-directory: worker
+        run: npx wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Add private bot token
+        working-directory: worker
+        run: printf '%s' "$TELEGRAM_BOT_TOKEN" | npx wrangler secret put BOT_TOKEN
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      - name: Add private webhook secret
+        working-directory: worker
+        run: printf '%s' "$TELEGRAM_WEBHOOK_SECRET" | npx wrangler secret put WEBHOOK_SECRET
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}
+      - name: Register commands and webhook in Telegram
+        working-directory: worker
+        run: node scripts/configure-telegram.mjs "$WORKER_URL"
+        env:
+          WORKER_URL: ${{ inputs.worker_url }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_WEBHOOK_SECRET: ${{ secrets.TELEGRAM_WEBHOOK_SECRET }}

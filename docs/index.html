@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#10252b">
+  <meta name="description" content="Roman inscription image tracking and augmented reality tools.">
+  <title>ARTHProj — Roman Inscription AR</title>
+  <style>
+    :root { color-scheme: dark; font-family: system-ui, sans-serif; background: #0a1519; color: #f2f5f3; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; }
+    main { width: min(92vw, 580px); padding: 2.5rem 0; }
+    h1 { font-size: clamp(2rem, 8vw, 3rem); margin: .35rem 0; }
+    p { color: #b7c8c6; line-height: 1.6; }
+    .kicker { letter-spacing: .18em; font-weight: 700; text-transform: uppercase; color: #7fe0b4; font-size: .75rem; }
+    .card { display: block; color: inherit; padding: 1.2rem 1.4rem; margin-top: .9rem; border-radius: 1rem; border: 1px solid #3c5959; text-decoration: none; }
+    .card:hover, .card:focus-visible { border-color: #8cd6b6; background: #163036; }
+    .primary { background: #1c5949; border-color: #2c9477; }
+    .card strong { display: block; font-size: 1.07rem; }
+    .card span { display: block; color: #bfceca; font-size: .9rem; margin-top: .35rem; }
+    footer { font-size: .82rem; color: #a6b5b4; padding-top: 1.5rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="kicker">Augmented Reality Treasure Hunt</div>
+    <h1>Roman Inscription AR</h1>
+    <p>Use your phone to recognize an ancient stone inscription and reveal nine highlighted letters. Allow access to your camera when prompted.</p>
+    <a class="card primary" href="https://jolly-lab-cef2.daviedeiana5.workers.dev/">
+      <strong>Open AR Camera</strong><span>Launch the existing image-tracking application</span>
+    </a>
+    <a class="card" href="https://jolly-lab-cef2.daviedeiana5.workers.dev/reference.html">
+      <strong>Reference image</strong><span>View the original Roman inscription</span>
+    </a>
+    <a class="card" href="https://jolly-lab-cef2.daviedeiana5.workers.dev/overlay-preview.html">
+      <strong>Highlighted letters</strong><span>See the nine green letters</span>
+    </a>
+    <footer>ARTHProj is open source. The AR engine currently runs on the linked Cloudflare deployment; this GitHub Pages site provides its navigation.</footer>
+  </main>
+</body>
+</html>
