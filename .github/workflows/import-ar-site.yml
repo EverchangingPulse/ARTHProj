@@ -1,0 +1,100 @@
+name: Import original AR website into GitHub Pages
+
+on:
+  push:
+    paths:
+      - ".github/workflows/import-ar-site.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Retrieve and verify the existing AR deployment
+        shell: bash
+        run: |
+          python - <<'PY'
+          from hashlib import sha256
+          from pathlib import Path
+          import subprocess
+
+          sources = (
+              "https://jolly-lab-cef2.daviedeiana5.workers.dev",
+              "https://ar.daviedeiana5.workers.dev",
+          )
+          expected = {
+              "404.html": "aeba967d44f2e1a841f96378a7b81b329f4b06cb4449324a6f22809f1a1eea55",
+              "ar-app.js": "03f14233c622b3eafc5733852dcd11cc58b0edbb4fdfc7002a241a43b05014dd",
+              "ar-settings.js": "071fdf178d5774241b99ea2c5c8cc5bcde2b820ede438f922b9c88ca9c461c62",
+              "assets/icon.svg": "9a8a09e3ab95b4b658fa44ae40688ed5d4178e3b4d54d5d5f027253c",
+              "assets/inscription-highlighted.jpg": "d39b63ddf63e3f79b84aba72bc3a3e002779311b3295bcb84b4d5b40d3f63ec2",
+              "assets/inscription-reference.jpg": "22272f3b3aa9600194314bc366b6c92461463d81c3bd2ae6d8d868d1b9e8049d",
+              "assets/inscription-tracking.png": "6d383226d28c4dc988e87fe94fc44e1a253464602475d8f89b8d3e95d2bac2d0",
+              "assets/overlay.png": "bcf64e03250c9479dcd84f4516ae7c6e2e4dfa01bd37be6336480a02b1aabc25",
+              "compile.html": "782b6e1f2defda74b185b2d3a8aa6e31457292d0bea59cf7d0bfa3bb84418bc5",
+              "index.html": "8f7f735f34e6878a638b5c729cbbfd6cbbd186090423064c937ebbd3e01efd09",
+              "overlay-preview.html": "fd3d531adf643ae6e51de5f21b98b5a93b69be79c845f2e09a93663e1c575de9",
+              "reference.css": "6d1e99855336362e518541770135563029226c08e21e09ed04d40287ba8e0649",
+              "reference.html": "69e9755d88446f05ecb92759d27780eb2213501823b68f069a71c73fac92bb3d",
+              "styles.css": "9fd858a69e7142fd3b81acdccc88fffd441dcbde85220604e25cf30071dd33df",
+              "target-compiler.js": "a23abe2d04befec0d471476e20b3969ec2243a3a6bf8f079058e0d865b9be974",
+          }
+          destination = Path("docs")
+          destination.mkdir(exist_ok=True)
+          for relative, expected_hash in expected.items():
+              target = destination / relative
+              target.parent.mkdir(parents=True, exist_ok=True)
+              retrieved = False
+              for base in sources:
+                  url = f"{base}/{relative}"
+                  command = [
+                      "curl", "--fail", "--silent", "--show-error", "--location",
+                      "--retry", "2", "--retry-delay", "1",
+                      "--connect-timeout", "10", "--max-time", "35",
+                      url, "--output", str(target),
+                  ]
+                  result = subprocess.run(command, capture_output=True, text=True)
+                  if result.returncode != 0 or not target.exists():
+                      print(f"Unavailable: {url}: {result.stderr.strip()[:160]}")
+                      continue
+                  actual_hash = sha256(target.read_bytes()).hexdigest()
+                  if actual_hash == expected_hash:
+                      print(f"Verified: {relative} ({target.stat().st_size} bytes)")
+                      retrieved = True
+                      break
+                  print(f"Hash mismatch: {url} (not importing unexpected content)")
+              if not retrieved:
+                  raise SystemExit(f"Could not securely retrieve {relative}. Original project assets remain unchanged.")
+
+          for target in destination.glob("*.html"):
+              source = target.read_text()
+              source = source.replace('href="/', 'href="./').replace('src="/', 'src="./')
+              source = source.replace('from "/', 'from "./')
+              target.write_text(source)
+          script = destination / "ar-app.js"
+          script.write_text(script.read_text().replace('from "/', 'from "./'))
+          settings = destination / "ar-settings.js"
+          settings.write_text(settings.read_text().replace('"/assets/', '"./assets/'))
+          (destination / ".nojekyll").touch()
+          assert '<a-scene' in (destination / "index.html").read_text()
+          assert 'MINDAR?.IMAGE?.Compiler' in (destination / "target-compiler.js").read_text()
+          assert 'import { arSettings } from "./ar-settings.js"' in script.read_text()
+          assert '"./assets/overlay.png"' in settings.read_text()
+          assert (destination / "assets/overlay.png").stat().st_size > 20000
+          print("AR source, images, tracking assets, and GitHub Pages relative paths verified.")
+          PY
+      - name: Commit complete AR frontend and assets
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/
+          git diff --cached --quiet && exit 0
+          git commit -m "Port verified Roman inscription AR camera and image assets to Pages"
+          git push origin HEAD:main
