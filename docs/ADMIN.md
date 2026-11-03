@@ -47,6 +47,10 @@ Edit [`docs/config/settings.json`](../docs/config/settings.json). All parameters
 | `overlay.opacity` | Transparency of AR symbol planes, 0.1–1.0 |
 | `scanner.enabled` | Enables or hides the scanner decoration |
 | `scanner.style` | `astrolabe` (bronze instrument with animated sextant arm) or `sonar` (legacy green radar) |
+| `compass.enabled` | Show or hide the independent compass rose |
+| `compass.preferTrueNorth` | Correct magnetic heading to true north when location is authorized |
+| `compass.requestLocation` | Request location coordinates for local WMM2025 magnetic-declination calculation |
+| `compass.headingSmoothing` | Compass smoothing, from 0.05 to 1 (smaller is steadier) |
 | `capture.autoFreeze` | Enables automatic stationary capture after recognition |
 | `capture.freezeDelayMs` | Time in milliseconds before capture (0–5000) |
 | `capture.shutterSound` | Attempts to play synthesized mechanical shutter sound |
@@ -66,3 +70,11 @@ node --test tests/site.test.mjs
 ```
 
 Live recognition, stability, and photo capture still need validation on a physical Android phone.
+
+## Italian brigandine astrolabe and north compass
+
+The scanner uses `docs/assets/astrolabe-scanner.svg`, an ornamental frame with walnut beams, blue riveted brigandine sections, mechanical rails, latches, brass radial graduations, and an animated sextant arm. The alternate legacy green sonar remains available through `scanner.style`.
+
+The separate `docs/assets/wind-rose.svg` is rotated by `docs/north-compass.js`, using mobile absolute device-orientation events when available. The compass uses WMM2025 declination calculated locally from location coordinates to convert magnetic heading into true heading. It displays `TRUE N` only after obtaining a valid declination. Without location permission it displays `MAG N` if magnetic orientation is available; when sensors are blocked or unsupported, it displays its limitation instead of showing a fabricated heading. The iOS permission API may require a visitor to tap **Enable compass**.
+
+Phone compass hardware can be affected by nearby metal and electromagnetic interference. This UI is for an AR experience, not safety-critical navigation. WMM2025 model code is adapted from Darren Yeates' MIT-licensed magvar project; see `docs/vendor/WMM2025-LICENSE.txt`.

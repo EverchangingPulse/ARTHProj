@@ -107,3 +107,7 @@ The full frontend was transferred from the existing Cloudflare site with SHA-256
 - Tests cover webhook validation, group/private commands and URL behavior. Live Telegram webhook delivery and AR tracking require integration testing after deployment.
 
 MIT licensed. See [LICENSE](LICENSE).
+
+## Compass rose and antique scanner
+
+The astrolabe theme now includes blue brigandine panels, aged walnut crossbars, brass rails, pins, pivot mechanisms, and a rotating sextant sight. Its standalone *rosa dei venti* follows the phone’s absolute orientation. When the user grants geolocation, a locally bundled WMM2025 model corrects magnetic north into true north; otherwise the compass identifies the magnetic heading or the lack of sensor permission. All compass behavior is controlled by `docs/config/settings.json`, and no coordinates are transmitted to a compass server. See `docs/ADMIN.md` for settings and browser limitations.

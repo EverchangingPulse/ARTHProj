@@ -12,7 +12,7 @@ const text = name => readFileSync(join(root, name), "utf8");
 const asset = name => readFileSync(join(root, "assets", name));
 const json = name => JSON.parse(text(name));
 const pages = ["index.html", "reference.html", "overlay-preview.html", "compile.html", "404.html"];
-const scripts = ["ar-app.js", "app-config.js", "target-compiler.js", "target-manifest.js"];
+const scripts = ["ar-app.js", "app-config.js", "target-compiler.js", "target-manifest.js", "north-compass.js", "vendor/wmm2025.js", "vendor/wmm2025-coefficients.js", "vendor/wmm2025-utils.js"];
 
 test("public frontend and administrator configuration exist", () => {
   for (const file of [...pages, ...scripts, "styles.css", "reference.css", "config/targets.json", "config/settings.json"]) {
@@ -70,6 +70,10 @@ test("admin settings JSON is validated and has valid camera defaults", () => {
   assert.equal(settings.capture.freezeDelayMs, 700);
   assert.equal(settings.capture.shutterSound, true);
   assert.equal(settings.scanner.enabled, true);
+  assert.equal(settings.compass.enabled, true);
+  assert.equal(settings.compass.preferTrueNorth, true);
+  assert.equal(settings.compass.requestLocation, true);
+  assert.equal(settings.compass.headingSmoothing, 0.21);
   assert.equal(settings.scanner.style, "astrolabe");
 });
 
@@ -169,4 +173,28 @@ test("image compiler uses MindAR's official export API", () => {
   const compiler = text("target-compiler.js");
   assert.match(compiler, /MINDAR\?\.IMAGE\?\.Compiler/);
   assert.match(compiler, /trackingRevision \|\| target\.revision/);
+});
+
+test("Italian brigandine scanner and wind rose SVG assets exist", () => {
+  for (const file of ["astrolabe-scanner.svg", "wind-rose.svg"]) {
+    const svg = asset(file).toString("utf8");
+    assert.match(svg, /<svg/);
+    assert.match(svg, /<\/svg>/);
+  }
+  assert.match(asset("astrolabe-scanner.svg").toString("utf8"), /italian-brigandine-woodwork/);
+  assert.match(asset("astrolabe-scanner.svg").toString("utf8"), /riveted-blue-brigandine/);
+  assert.match(asset("astrolabe-scanner.svg").toString("utf8"), /sliding-rails/);
+  assert.match(text("index.html"), /id="compass-panel"/);
+  assert.match(text("index.html"), /assets\/wind-rose.svg/);
+});
+
+test("compass and theme settings are administrator-configured", () => {
+  const app = text("ar-app.js");
+  const settings = text("app-config.js");
+  assert.match(app, /compass\.start\(settings\.compass\)/);
+  assert.match(app, /compass\.requestLocation\(\)/);
+  assert.match(settings, /compass\.headingSmoothing/);
+  assert.match(settings, /scanner\.style/);
+  assert.doesNotMatch(text("index.html"), /id="compass-settings"/);
+  assert.ok(existsSync(join(root, "vendor/WMM2025-LICENSE.txt")));
 });

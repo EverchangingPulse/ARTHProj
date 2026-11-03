@@ -35,6 +35,16 @@
         </div>
         <span class="scanner-caption">ASTROLABE · ACQUIRING TARGET</span>
       </div>
+      <aside id="compass-panel" class="compass-panel" hidden aria-label="Rosa dei venti, phone compass">
+        <div class="compass-casing">
+          <div class="compass-pointer" aria-hidden="true"></div>
+          <img id="wind-rose" src="./assets/wind-rose.svg" alt="Rotating compass rose" draggable="false">
+          <div class="compass-pivot" aria-hidden="true"></div>
+        </div>
+        <output id="compass-heading" class="compass-heading">—°</output>
+        <div id="compass-mode" class="compass-mode">SEARCHING N</div>
+        <button id="compass-enable" class="compass-enable" type="button" hidden>Enable compass</button>
+      </aside>
       <div id="capture-flash" class="capture-flash" hidden aria-hidden="true"></div>
       <div id="polaroid" class="polaroid-frame" hidden aria-label="Stationary augmented reality photograph">
         <div class="polaroid-paper">
@@ -88,6 +98,6 @@
       </div>
     </section>
   </main>
-  <script type="module" src="./ar-app.js?v=3.0.0"></script>
+  <script type="module" src="./ar-app.js?v=4.0.0"></script>
 </body>
 </html>

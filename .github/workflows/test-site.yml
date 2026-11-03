@@ -21,4 +21,4 @@ jobs:
         with:
           node-version: "22"
       - name: Validate assets and relative paths
-        run: node --test tests/site.test.mjs
+        run: node --test tests/*.test.mjs

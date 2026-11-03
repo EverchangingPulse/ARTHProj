@@ -149,3 +149,64 @@ a-scene canvas { display: block; }
 @media (prefers-reduced-motion: reduce) {
   .scanner-instrument { opacity: .8; }
 }
+
+
+:root {
+  --bg: #0e1118;
+  --ink: #f8edce;
+  --muted: #cfb99a;
+  --accent: #e7b974;
+  --border: rgba(211, 165, 91, .38);
+  --panel: rgba(25, 29, 42, .92);
+}
+.camera-stage {
+  background: radial-gradient(ellipse at 50% 42%, #243958 0%, #171d2b 38%, #161112 75%, #0a0b0e 100%);
+}
+.topbar {
+  background: linear-gradient(90deg, rgba(30,19,15,.93), rgba(30,43,67,.84) 55%, rgba(30,19,15,.93));
+  border-bottom: 2px solid #946638;
+  box-shadow: 0 8px 22px rgba(8,8,8,.5), inset 0 -3px rgba(38,22,17,.65);
+}
+.brand-icon {
+  background: linear-gradient(140deg,#203a67,#12223c);
+  border: 2px solid #9e7543;
+  box-shadow: inset 0 0 5px #a1753e;
+}
+.brand strong {
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: .13em;
+  color: #f5e4b9;
+}
+.tracking-pill {
+  background: linear-gradient(135deg, rgba(15,25,46,.96), rgba(43,27,18,.92));
+  color: #e5bd78;
+  border: 1px solid #936c3f;
+  box-shadow: inset 0 0 0 1px rgba(246,198,122,.18);
+}
+.tracking-pill[data-state="found"] { color: #fae4ab; border-color: #e7c27e; }
+.camera-vignette {
+  background: linear-gradient(to bottom, rgba(10,9,14,.62), transparent 28%, transparent 57%, rgba(16,10,9,.88));
+}
+.bottom-panel {
+  background: linear-gradient(120deg,rgba(25,37,61,.97),rgba(32,23,19,.97) 64%,rgba(25,35,58,.97));
+  border-top: 2px solid #916a42;
+  box-shadow: inset 0 3px 0 rgba(228,180,106,.17), 0 -13px 39px rgba(0,0,0,.57);
+}
+.status-line { color: #edd7b2; }
+.status-indicator[data-state="found"] { background: #f4d394; box-shadow: 0 0 9px #ffc06c; }
+.status-indicator[data-state="searching"] { background: #dea86b; box-shadow: 0 0 8px #f3b968; }
+.button-primary {
+  background: linear-gradient(#f8d49c,#bd874b);
+  border: 1px solid #a7773c;
+  color: #25160f;
+  text-shadow: 0 1px rgba(255,235,204,.3);
+  box-shadow: inset 0 2px rgba(255,237,195,.48), 0 3px 7px rgba(0,0,0,.38);
+}
+.button-secondary {
+  background: linear-gradient(130deg, #2d4b77,#192c4b 65%,#2a3043);
+  border-color: #966c40;
+  color: #f6dfb9;
+}
+.actions-row a, .actions-row .text-button { color: #f0c890; }
+.scanner-caption { box-shadow: inset 0 0 0 1px rgba(255,227,169,.13),0 4px 9px rgba(0,0,0,.45); }
+.scanner-hud[data-state="found"] .scanner-instrument { filter: drop-shadow(0 0 14px rgba(249,201,119,.6)); }

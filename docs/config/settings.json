@@ -17,5 +17,11 @@
     "autoFreeze": true,
     "freezeDelayMs": 700,
     "shutterSound": true
+  },
+  "compass": {
+    "enabled": true,
+    "preferTrueNorth": true,
+    "requestLocation": true,
+    "headingSmoothing": 0.21
   }
 }

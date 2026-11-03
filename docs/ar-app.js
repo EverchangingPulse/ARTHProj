@@ -40,6 +40,7 @@ class StatusView {
     this.capture.disabled = state !== "found";
     this.stop.disabled = !["searching", "found"].includes(state);
     this.scanner.hidden = !["searching", "found"].includes(state) || !this.scannerEnabled;
+    this.scanner.dataset.state = state;
     this.polaroid.hidden = state !== "frozen";
   }
 }

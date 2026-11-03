@@ -40,6 +40,12 @@ export function parseAppSettings(config) {
       enabled: requireBoolean(config.scanner?.enabled, "scanner.enabled"),
       style: requireScannerStyle(config.scanner?.style)
     },
+    compass: {
+      enabled: requireBoolean(config.compass?.enabled, "compass.enabled"),
+      preferTrueNorth: requireBoolean(config.compass?.preferTrueNorth, "compass.preferTrueNorth"),
+      requestLocation: requireBoolean(config.compass?.requestLocation, "compass.requestLocation"),
+      headingSmoothing: requireNumber(config.compass?.headingSmoothing, 0.05, 1, "compass.headingSmoothing")
+    },
     capture: {
       autoFreeze: requireBoolean(config.capture?.autoFreeze, "capture.autoFreeze"),
       freezeDelayMs: requireInteger(config.capture?.freezeDelayMs, 0, 5000, "capture.freezeDelayMs"),
