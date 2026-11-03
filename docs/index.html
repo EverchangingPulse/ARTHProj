@@ -24,7 +24,8 @@
         renderer="colorManagement: true; precision: mediump; antialias: true; alpha: true">
         <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
       </a-scene>
-      <div id="scanner-hud" class="scanner-hud" hidden aria-hidden="true">
+      <div id="scanner-hud" class="scanner-hud" data-style="astrolabe" hidden aria-hidden="true">
+        <img class="scanner-instrument" src="./assets/astrolabe-scanner.svg" alt="" draggable="false">
         <div class="scanner-radar">
           <span class="scanner-ring"></span>
           <span class="scanner-ring"></span>
@@ -32,7 +33,7 @@
           <span class="scanner-sweep"></span>
           <span class="scanner-crosshair">+</span>
         </div>
-        <span class="scanner-caption">ANALYZING IMAGE PATTERNS</span>
+        <span class="scanner-caption">ASTROLABE · ACQUIRING TARGET</span>
       </div>
       <div id="capture-flash" class="capture-flash" hidden aria-hidden="true"></div>
       <div id="polaroid" class="polaroid-frame" hidden aria-label="Stationary augmented reality photograph">

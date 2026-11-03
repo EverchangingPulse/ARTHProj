@@ -16,6 +16,13 @@ function requireInteger(value, min, max, path) {
   return number;
 }
 
+function requireScannerStyle(value) {
+  if (!["astrolabe", "sonar"].includes(value)) {
+    throw new Error('scanner.style must be "astrolabe" or "sonar".');
+  }
+  return value;
+}
+
 export function parseAppSettings(config) {
   if (config?.version !== 1) throw new Error("Invalid settings version: expected version 1.");
 
@@ -30,7 +37,8 @@ export function parseAppSettings(config) {
       opacity: requireNumber(config.overlay?.opacity, 0.1, 1, "overlay.opacity")
     },
     scanner: {
-      enabled: requireBoolean(config.scanner?.enabled, "scanner.enabled")
+      enabled: requireBoolean(config.scanner?.enabled, "scanner.enabled"),
+      style: requireScannerStyle(config.scanner?.style)
     },
     capture: {
       autoFreeze: requireBoolean(config.capture?.autoFreeze, "capture.autoFreeze"),

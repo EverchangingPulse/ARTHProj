@@ -10,7 +10,8 @@
     "opacity": 1
   },
   "scanner": {
-    "enabled": true
+    "enabled": true,
+    "style": "astrolabe"
   },
   "capture": {
     "autoFreeze": true,

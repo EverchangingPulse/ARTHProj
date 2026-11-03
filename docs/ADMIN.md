@@ -45,7 +45,8 @@ Edit [`docs/config/settings.json`](../docs/config/settings.json). All parameters
 | `camera.autoStart` | Requests camera access automatically on page open when `true` |
 | `tracking.maxTrack` | Maximum targets tracked simultaneously (1–3) |
 | `overlay.opacity` | Transparency of AR symbol planes, 0.1–1.0 |
-| `scanner.enabled` | Toggles the green sonar/scanner effect |
+| `scanner.enabled` | Enables or hides the scanner decoration |
+| `scanner.style` | `astrolabe` (bronze instrument with animated sextant arm) or `sonar` (legacy green radar) |
 | `capture.autoFreeze` | Enables automatic stationary capture after recognition |
 | `capture.freezeDelayMs` | Time in milliseconds before capture (0–5000) |
 | `capture.shutterSound` | Attempts to play synthesized mechanical shutter sound |

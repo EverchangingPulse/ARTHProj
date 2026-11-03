@@ -1,4 +1,4 @@
-import { loadAppSettings } from "./app-config.js?v=3.0.0";
+import { loadAppSettings } from "./app-config.js?v=3.1.0";
 import { loadTargets } from "./target-manifest.js?v=3.0.0";
 import { TargetCompiler } from "./target-compiler.js?v=3.0.0";
 
@@ -186,6 +186,7 @@ class ArExperience {
       this.freezeDelayMs = settings.capture.freezeDelayMs;
       this.sound.enabled = settings.capture.shutterSound;
       this.view.scannerEnabled = settings.scanner.enabled;
+      this.view.scanner.dataset.style = settings.scanner.style;
       this.targets = targets;
       await this.waitForScene();
       await this.installAnchors();

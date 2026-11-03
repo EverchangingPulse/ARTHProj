@@ -119,3 +119,33 @@ a-scene canvas { display: block; }
   .polaroid-paper { width: min(75vw, 310px, calc((100dvh - 255px) * .85)); max-height: calc(100dvh - 255px); }
   .polaroid-paper canvas { max-height: calc(100dvh - 325px); }
 }
+
+/* Camera-visible brass sextant and astrolabe presentation */
+.scanner-instrument {
+  display: block;
+  width: min(98vw, 650px);
+  max-height: min(70dvh, 530px);
+  height: auto;
+  object-fit: contain;
+  opacity: .92;
+  filter: drop-shadow(0 2px 2px rgba(5, 4, 2, .8))
+    drop-shadow(0 0 10px rgba(213, 151, 64, .15));
+  user-select: none;
+}
+.scanner-hud[data-style="astrolabe"] .scanner-radar { display: none; }
+.scanner-hud[data-style="sonar"] .scanner-instrument { display: none; }
+.scanner-hud[data-style="astrolabe"] .scanner-caption {
+  background: rgba(32, 23, 14, .82);
+  color: #f5d49a;
+  border-color: rgba(212, 161, 90, .55);
+  letter-spacing: .14em;
+  font-family: Georgia, serif;
+  font-size: 10px;
+}
+@media (max-height: 700px) {
+  .scanner-instrument { max-height: 47dvh; width: min(96vw, 480px); }
+  .scanner-hud { gap: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .scanner-instrument { opacity: .8; }
+}

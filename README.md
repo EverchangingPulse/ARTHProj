@@ -19,11 +19,11 @@ The live application **does not allow visitors to add reference pictures or repl
 
 Only contributors with GitHub repository write access can change the source assets or configuration. This makes a new picture/PNG pair available to every visitor after the site deploys. No passwords or secrets are stored in client-side JSON.
 
-**Add another picture:** upload a reference JPG/PNG/WebP and transparent symbol PNG into `docs/assets/`, then register their paths and revision strings in the targets configuration. The Roman inscription remains the default pair. **Change behavior:** edit `camera.autoStart`, `tracking.maxTrack`, `overlay.opacity`, `scanner.enabled`, `capture.autoFreeze`, `capture.freezeDelayMs` or `capture.shutterSound` in the settings file.
+**Add another picture:** upload a reference JPG/PNG/WebP and transparent symbol PNG into `docs/assets/`, then register their paths and revision strings in the targets configuration. The Roman inscription remains the default pair. **Change behavior:** edit `camera.autoStart`, `tracking.maxTrack`, `overlay.opacity`, `scanner.enabled`, `scanner.style`, `capture.autoFreeze`, `capture.freezeDelayMs` or `capture.shutterSound` in the settings file.
 
 See [`docs/ADMIN.md`](docs/ADMIN.md) for the complete Android/GitHub workflow and sample configuration entries.
 
-The camera automatically asks for permission when `camera.autoStart` is enabled. The sonar overlay appears during searching, and a successful stable recognition can produce a gray shutter flash, sound (subject to browser autoplay restrictions), and a static Polaroid screenshot. The visitor can scan again, manually freeze, stop, or save the image.
+The camera automatically asks for permission when `camera.autoStart` is enabled. An animated brass astrolabe/sextant scanner appears during searching (or the legacy green sonar if configured), and a successful stable recognition can produce a gray shutter flash, sound (subject to browser autoplay restrictions), and a static Polaroid screenshot. The visitor can scan again, manually freeze, stop, or save the image.
 
 ## Android-only deployment
 

@@ -70,6 +70,7 @@ test("admin settings JSON is validated and has valid camera defaults", () => {
   assert.equal(settings.capture.freezeDelayMs, 700);
   assert.equal(settings.capture.shutterSound, true);
   assert.equal(settings.scanner.enabled, true);
+  assert.equal(settings.scanner.style, "astrolabe");
 });
 
 test("settings config rejects invalid values", () => {
@@ -78,6 +79,7 @@ test("settings config rejects invalid values", () => {
   assert.throws(() => parseAppSettings({ ...config, overlay: { opacity: 3 } }), /overlay.opacity/);
   assert.throws(() => parseAppSettings({ ...config, capture: { ...config.capture, shutterSound: "yes" } }), /shutterSound/);
   assert.throws(() => parseAppSettings({ ...config, camera: { autoStart: "true" } }), /camera.autoStart/);
+  assert.throws(() => parseAppSettings({ ...config, scanner: { enabled: true, style: "invalid" } }), /scanner.style/);
 });
 
 test("public users cannot create or replace reference pictures", () => {
@@ -124,6 +126,21 @@ test("built-in Roman image assets have correct image formats and aspect ratios",
   }
   assert.deepEqual([tracking.readUInt32BE(16), tracking.readUInt32BE(20)], [1024, 702]);
   assert.deepEqual([overlay.readUInt32BE(16), overlay.readUInt32BE(20)], [1536, 1053]);
+});
+
+test("astrolabe scanner is a transparent vector asset with a moving sextant arm", () => {
+  const html = text("index.html");
+  const app = text("ar-app.js");
+  const css = text("styles.css");
+  const svg = text("assets/astrolabe-scanner.svg");
+  assert.match(html, /src="\.\/assets\/astrolabe-scanner\.svg"/);
+  assert.match(app, /this\.view\.scanner\.dataset\.style = settings\.scanner\.style/);
+  assert.match(css, /\.scanner-hud\[data-style="astrolabe"\] \.scanner-radar/);
+  assert.match(css, /\.scanner-hud\[data-style="sonar"\] \.scanner-instrument/);
+  assert.match(svg, /<svg[^>]+viewBox="0 0 900 650"/);
+  assert.match(svg, /class="sight"/);
+  assert.match(svg, /class="turn"/);
+  assert.doesNotMatch(svg, /<image\b/);
 });
 
 test("scanner hides before frozen camera screenshot is captured", () => {
