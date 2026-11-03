@@ -45,9 +45,7 @@ If the first run uses the wrong Worker URL, run the workflow again with the corr
 
 ### 3. Configure the Telegram app button
 
-In BotFather, use `/setmenubutton` and enter your working AR website's URL. You can also enable **Main Mini App** under **Bot Settings → Configure Mini App**. The group's `/ar` response uses the direct `https://t.me/RomanInscriptionAR_bot?startapp` link, which requires the Main Mini App to be configured.
-
-If you do **not** configure the Main Mini App, remove the `GROUP_LAUNCH_URL` line in `worker/wrangler.toml` and redeploy. The group `/ar` button will then point directly to the website.
+In BotFather, use `/setmenubutton` and enter your working AR website's URL. You can also enable **Main Mini App** under **Bot Settings → Configure Mini App**. By default, the group `/ar` button opens the AR website directly, without requiring a Main Mini App. If your Main Mini App is configured, you can optionally add `GROUP_LAUNCH_URL = "https://t.me/RomanInscriptionAR_bot?startapp"` under `[vars]` in `worker/wrangler.toml`, then redeploy to launch it through Telegram.
 
 ### 4. Add the bot to your Telegram group
 
