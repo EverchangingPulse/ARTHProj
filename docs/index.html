@@ -1,92 +1,117 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-    <meta name="theme-color" content="#0a1118">
-    <meta name="description" content="Live image-tracking augmented reality, available as a Telegram Mini App.">
-    <title>AR Lens · Telegram Mini App</title>
-    <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
-    <link rel="stylesheet" href="./styles.css">
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
-    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
-  </head>
-  <body>
-    <main class="app-shell">
-      <section class="camera-stage" aria-label="Augmented reality camera">
-        <a-scene id="ar-scene"
-          embedded
-          mindar-image="imageTargetSrc: ; autoStart: false; uiLoading: no; uiScanning: no; uiError: no;"
-          vr-mode-ui="enabled: false"
-          device-orientation-permission-ui="enabled: false"
-          renderer="colorManagement: true; precision: mediump; antialias: true">
-          <a-assets timeout="30000">
-            <img id="overlay-asset" src="./assets/overlay.png" crossorigin="anonymous" alt="">
-          </a-assets>
-          <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
-          <a-entity id="image-target" mindar-image-target="targetIndex: 0">
-            <a-plane id="overlay-plane"
-              src="#overlay-asset"
-              position="0 0 0.008"
-              width="1"
-              height="0.685547"
-              material="shader: flat; transparent: true; depthWrite: false; side: double; opacity: 1">
-            </a-plane>
-          </a-entity>
-        </a-scene>
-
-        <div class="camera-vignette" aria-hidden="true"></div>
-
-        <header class="topbar">
-          <div class="brand">
-            <span class="brand-icon" aria-hidden="true">◇</span>
-            <div>
-              <strong>AR LENS</strong>
-              <span>IMAGE TRACKING</span>
-            </div>
-          </div>
-          <span id="tracking-pill" class="tracking-pill" aria-live="polite">
-            <span class="pulse-dot"></span>
-            <span id="tracking-label">READY</span>
-          </span>
-        </header>
-
-        <div id="camera-placeholder" class="camera-placeholder">
-          <div class="target-reticle" aria-hidden="true">
-            <span></span><span></span><span></span><span></span>
-            <div class="target-glyph">◎</div>
-          </div>
-          <div class="placeholder-content">
-            <h1>Scan the Roman inscription.</h1>
-            <p>Point your camera at the unmarked stone inscription. Nine green highlighted letters will appear in place.</p>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0a1118">
+  <meta name="description" content="Image-tracking AR with personalized symbols for every reference picture.">
+  <title>ARTHProj · Image Tracking</title>
+  <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./styles.css">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+</head>
+<body>
+  <main class="app-shell">
+    <section id="camera-stage" class="camera-stage" aria-label="Augmented reality camera">
+      <video id="permission-preview" autoplay muted playsinline hidden aria-hidden="true"></video>
+      <a-scene id="ar-scene" embedded
+        mindar-image="imageTargetSrc: ; maxTrack: 1; autoStart: false; uiLoading: no; uiScanning: no; uiError: no;"
+        vr-mode-ui="enabled: false"
+        device-orientation-permission-ui="enabled: false"
+        renderer="colorManagement: true; precision: mediump; antialias: true; alpha: true">
+        <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+      </a-scene>
+      <div id="scanner-hud" class="scanner-hud" hidden aria-hidden="true">
+        <div class="scanner-radar">
+          <span class="scanner-ring"></span>
+          <span class="scanner-ring"></span>
+          <span class="scanner-ring"></span>
+          <span class="scanner-sweep"></span>
+          <span class="scanner-crosshair">+</span>
+        </div>
+        <span class="scanner-caption">ANALYZING IMAGE PATTERNS</span>
+      </div>
+      <div id="capture-flash" class="capture-flash" hidden aria-hidden="true"></div>
+      <div id="polaroid" class="polaroid-frame" hidden aria-label="Stationary augmented reality photograph">
+        <div class="polaroid-paper">
+          <canvas id="frozen-canvas" class="frozen-canvas" aria-label="Captured picture with augmented symbols"></canvas>
+          <div class="polaroid-caption">
+            <strong id="polaroid-title">Recognized picture</strong>
+            <span>ARTHProj • Captured</span>
           </div>
         </div>
+      </div>
+      <div class="camera-vignette" aria-hidden="true"></div>
 
-        <div class="bottom-panel">
-          <div class="status-line" role="status" aria-live="polite">
-            <span id="status-indicator" class="status-indicator"></span>
-            <span id="status-text">Camera is off</span>
-          </div>
-          <div class="button-row">
-            <button id="start-btn" type="button" class="button button-primary">Start camera</button>
-            <button id="stop-btn" type="button" class="button button-secondary" disabled>Stop</button>
-          </div>
-          <div class="setting-row">
-            <label for="opacity-slider">Overlay opacity <output id="opacity-output">100%</output></label>
-            <input id="opacity-slider" type="range" min="20" max="100" value="100" step="1">
-          </div>
-          <div class="actions-row">
-            <a href="./reference.html" target="_blank" rel="noopener noreferrer">Reference image</a>
-            <a href="./overlay-preview.html" target="_blank" rel="noopener noreferrer">Preview overlay</a>
-            <label class="upload-action" for="overlay-upload">Change overlay</label>
-            <input id="overlay-upload" type="file" accept="image/png,image/jpeg,image/webp" hidden>
-            <button id="external-btn" class="text-button" type="button">Open in browser</button>
-          </div>
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-icon" aria-hidden="true">◇</span>
+          <div><strong>ARTHProj</strong><span>IMAGE TRACKING</span></div>
         </div>
-      </section>
-    </main>
-    <script type="module" src="./ar-app.js?v=1.1.1"></script>
-  </body>
+        <span id="tracking-pill" class="tracking-pill" aria-live="polite">
+          <span class="pulse-dot"></span><span id="tracking-label">STARTING</span>
+        </span>
+      </header>
+
+      <div id="camera-placeholder" class="camera-placeholder">
+        <div class="target-reticle" aria-hidden="true">
+          <span></span><span></span><span></span><span></span>
+          <div class="target-glyph">◎</div>
+        </div>
+        <div class="placeholder-content">
+          <h1>Scan a reference picture</h1>
+          <p>Camera access is requested automatically. Each recognized picture displays its own symbols overlay.</p>
+        </div>
+      </div>
+
+      <div class="bottom-panel">
+        <div class="status-line" role="status" aria-live="polite">
+          <span id="status-indicator" class="status-indicator"></span>
+          <span id="status-text">Requesting camera permission…</span>
+        </div>
+        <div class="button-row">
+          <button id="retry-btn" class="button button-primary" type="button" hidden>Retry camera</button>
+          <button id="scan-btn" class="button button-primary" type="button" hidden>Scan again</button>
+          <button id="capture-btn" class="button button-secondary" type="button" disabled>Freeze frame</button>
+          <button id="save-btn" class="button button-secondary" type="button" hidden>Save picture</button>
+          <button id="stop-btn" class="button button-secondary" type="button" disabled>Stop</button>
+        </div>
+        <div class="setting-row">
+          <label for="opacity-slider">Symbols opacity <output id="opacity-output">100%</output></label>
+          <input id="opacity-slider" type="range" min="20" max="100" step="1" value="100">
+        </div>
+        <div class="capture-options">
+          <label class="freeze-option">
+            <input id="auto-freeze" type="checkbox" checked>
+            Freeze automatically after a stable match
+          </label>
+          <label class="freeze-option">
+            <input id="shutter-sound" type="checkbox" checked>
+            Mechanical shutter sound
+          </label>
+        </div>
+        <details id="target-editor" class="target-editor">
+          <summary>Manage reference pictures and PNG overlays</summary>
+          <div id="targets-list" class="targets-list" aria-live="polite"></div>
+          <form id="pair-form" class="pair-form">
+            <label>Picture name<input id="pair-name" type="text" maxlength="64" placeholder="e.g. Temple carving" required></label>
+            <label>Reference picture (JPG / PNG / WebP)<input id="pair-reference" type="file" accept="image/png,image/jpeg,image/webp" required></label>
+            <label>Transparent symbols overlay (PNG)<input id="pair-overlay" type="file" accept="image/png" required></label>
+            <button class="button button-primary" type="submit">Add picture + PNG overlay</button>
+          </form>
+          <p class="storage-note">Each reference picture has its own transparent symbols PNG. Use an overlay with the same aspect ratio and letter positions as its reference. Personal pairs and customized overlays stay on this device; other Telegram users will not receive them automatically.</p>
+        </details>
+        <div class="actions-row">
+          <a href="./reference.html" target="_blank" rel="noopener noreferrer">Roman reference</a>
+          <a href="./overlay-preview.html" target="_blank" rel="noopener noreferrer">Green symbols</a>
+          <button id="external-btn" class="text-button" type="button">Open in browser</button>
+        </div>
+      </div>
+    </section>
+  </main>
+  <script type="module" src="./ar-app.js?v=2.0.0"></script>
+</body>
 </html>

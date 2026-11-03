@@ -13,6 +13,18 @@ Open-source Roman-inscription augmented reality treasure hunt with a Telegram gr
 
 The original AR camera and its inscription assets have been **migrated into `docs/` in this repository**. Enable GitHub Pages to publish the complete website. GitHub Pages cannot run the Telegram bot's webhook handler; the handler still deploys to a Cloudflare Worker.
 
+## Personalized AR pictures and captured photos
+
+The public website at https://everchangingpulse.github.io/ARTHProj/ automatically asks for camera permission as soon as the page loads. Some Android or Telegram browsers restrict unattended camera access; if the request fails, use **Retry camera** or **Open in browser**. HTTPS is required.
+
+To add another recognized picture, open **Manage reference pictures and PNG overlays**, enter a name, select its photograph (JPEG, PNG, WebP), and select a transparent PNG containing the symbols at the exact positions they should occupy over that picture. The AR scanner recognizes the reference picture and anchors **that picture's own PNG overlay** to it. The original Roman inscription remains included as a default target. You can also replace the PNG for any target without changing its reference image.
+
+Up to five additional image/overlay pairs are stored locally per browser in IndexedDB. The app resizes reference images to a maximum dimension of 1024 pixels and fits their transparent overlays to the matching image rectangle. The images are never uploaded to Telegram or GitHub by the web application. Clearing site data, switching devices, or using a different Telegram webview may remove access to those local custom pairs. To publish targets for **all visitors**, commit their images to the repository and register the new entries in \`docs/target-manifest.js\`.
+
+The camera draws a moving green sonar overlay while it searches for pictures. After a target is continuously recognized for 700 milliseconds, the scanner disappears, a still frame is captured with the anchored symbols, an original mechanical shutter sound is attempted, and a neutral gray flash transitions to a static Polaroid-style photo. Use **Save picture** to download the bordered image or **Scan again** to restart live scanning. Disable **Freeze automatically** to use the manual **Freeze frame** button instead.
+
+Browser autoplay restrictions can prevent sound before the visitor interacts with the page; the **Mechanical shutter sound** toggle and touching the page can unlock audio. The scanner and flash respect reduced-motion settings. Real device image tracking, camera permissions, sound playback, and screenshot composition must be validated in Chrome and the Telegram Android browser.
+
 ## Android-only deployment
 
 ### 1. Publish the complete AR website on GitHub Pages
