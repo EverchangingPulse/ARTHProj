@@ -123,7 +123,7 @@ a-scene canvas { display: block; }
 /* Camera-visible brass sextant and astrolabe presentation */
 .scanner-instrument {
   display: block;
-  width: min(98vw, 650px);
+  width: min(130vw, 760px);
   max-height: min(70dvh, 530px);
   height: auto;
   object-fit: contain;
@@ -150,6 +150,82 @@ a-scene canvas { display: block; }
   .scanner-instrument { opacity: .8; }
 }
 
+
+.compass-panel {
+  position: absolute;
+  top: max(82px, calc(env(safe-area-inset-top) + 68px));
+  right: 14px;
+  z-index: 7;
+  width: 104px;
+  padding: 8px 6px 10px;
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  border: 2px solid #be8f53;
+  border-radius: 11px 11px 22px 22px;
+  background: linear-gradient(139deg, #5f351f 3%, #261811 31%, #192945 48%, #261710 80%, #764c2e 100%);
+  box-shadow: inset 0 0 0 2px #24130c, inset 0 0 0 4px #825a30, 0 8px 18px rgba(0,0,0,.66);
+  color: #f3d7a6;
+}
+.compass-panel[hidden], .compass-enable[hidden] { display: none; }
+.compass-casing {
+  position: relative;
+  width: 82px;
+  height: 82px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 3px ridge #d4ad69;
+  background: #12223b;
+  box-shadow: inset 0 0 8px #030609, 0 0 0 2px #3b2518;
+  overflow: hidden;
+}
+.compass-casing img { width: 100%; height: 100%; display: block; will-change: transform; }
+.compass-pointer {
+  position: absolute;
+  z-index: 2;
+  top: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 13px;
+  height: 18px;
+  background: #e5d6b0;
+  clip-path: polygon(50% 100%, 0 0, 100% 0);
+  filter: drop-shadow(0 1px 2px #0b0a0a);
+}
+.compass-pivot {
+  position: absolute;
+  z-index: 2;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%,-50%);
+  width: 9px;
+  height: 9px;
+  border: 2px solid #e9c588;
+  border-radius: 50%;
+  background: #4a2a1c;
+  box-shadow: 0 1px 2px #080909;
+}
+.compass-heading { font-family: Georgia, serif; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.compass-mode { font-size: 8px; font-weight: 800; letter-spacing: .13em; text-align: center; color: #e2c592; }
+.compass-enable {
+  border: 1px solid #d5a85c;
+  border-radius: 6px;
+  padding: 5px 4px;
+  background: #284875;
+  color: #ffe3a3;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+@media (max-width: 380px) {
+  .compass-panel { width: 88px; right: 8px; padding: 6px 4px 7px; }
+  .compass-casing { width: 66px; height: 66px; }
+  .compass-heading { font-size: 14px; }
+}
+@media (max-height: 720px) {
+  .compass-panel { top: max(69px, calc(env(safe-area-inset-top) + 57px)); }
+}
 
 :root {
   --bg: #0e1118;
