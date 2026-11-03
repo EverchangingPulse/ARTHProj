@@ -9,20 +9,20 @@ Open-source Roman-inscription augmented reality treasure hunt with a Telegram gr
 - A **direct AR-launch button** in private chat and a group-safe URL button.
 - Secure Telegram webhooks using the `X-Telegram-Bot-Api-Secret-Token` header.
 - GitHub Actions to test the worker and manually deploy it with encrypted secrets.
-- A GitHub Pages navigation page in `docs/` that links to the existing working AR camera.
+- The complete GitHub Pages AR frontend in `docs/`, including the camera, target compiler, inscription images, and transparent highlights.
 
-The AR camera and inscription assets are currently deployed separately at `https://jolly-lab-cef2.daviedeiana5.workers.dev/`. They are not yet migrated into this repository. GitHub Pages hosts the navigation page, **not the camera engine**, until that migration is completed.
+The original AR camera and its inscription assets have been **migrated into `docs/` in this repository**. Enable GitHub Pages to publish the complete website. GitHub Pages cannot run the Telegram bot's webhook handler; the handler still deploys to a Cloudflare Worker.
 
 ## Android-only deployment
 
-### 1. Connect GitHub Pages navigation
+### 1. Publish the complete AR website on GitHub Pages
 
 1. Open this repository in Chrome on Android. If necessary, enable **Desktop site**.
 2. Open **Settings → Pages**.
 3. Select **Deploy from a branch**, branch `main`, folder `/docs`, then save.
 4. GitHub will publish `https://everchangingpulse.github.io/ARTHProj/` once Pages finishes deploying.
 
-You can use the existing Cloudflare AR application immediately without enabling Pages.
+Once enabled, open `https://everchangingpulse.github.io/ARTHProj/` to use the full camera application. The first camera launch compiles the tracking target locally if no precompiled `targets.mind` is available. External MindAR and A-Frame libraries load from public CDNs.
 
 ### 2. Create the Cloudflare Worker
 
@@ -45,7 +45,7 @@ If the first run uses the wrong Worker URL, run the workflow again with the corr
 
 ### 3. Configure the Telegram app button
 
-In BotFather, use `/setmenubutton` and enter your working AR website's URL. You can also enable **Main Mini App** under **Bot Settings → Configure Mini App**. By default, the group `/ar` button opens the AR website directly, without requiring a Main Mini App. If your Main Mini App is configured, you can optionally add `GROUP_LAUNCH_URL = "https://t.me/RomanInscriptionAR_bot?startapp"` under `[vars]` in `worker/wrangler.toml`, then redeploy to launch it through Telegram.
+In BotFather, use `/setmenubutton` and enter `https://everchangingpulse.github.io/ARTHProj/` once Pages is live. You can also enable **Main Mini App** under **Bot Settings → Configure Mini App**. By default, the group `/ar` button opens the AR website directly, without requiring a Main Mini App. If your Main Mini App is configured, you can optionally add `GROUP_LAUNCH_URL = "https://t.me/RomanInscriptionAR_bot?startapp"` under `[vars]` in `worker/wrangler.toml`, then redeploy to launch it through Telegram.
 
 ### 4. Add the bot to your Telegram group
 
@@ -61,7 +61,7 @@ Edit `worker/wrangler.toml`:
 - `BOT_USERNAME`: the bot's username, without the leading `@`.
 - `GROUP_LAUNCH_URL`: optional Main Mini App link for group buttons; delete it to use `AR_URL`.
 
-When you eventually migrate the full AR website and image files to GitHub Pages, set `AR_URL` to `https://everchangingpulse.github.io/ARTHProj/` **only after** the camera application is served at that address. The present Pages navigation page is not the camera engine.
+`AR_URL` now points to `https://everchangingpulse.github.io/ARTHProj/` in `worker/wrangler.toml`. Enable Pages and verify that the camera loads before deploying the bot.
 
 To test locally with Node.js 22 or newer:
 
@@ -72,13 +72,24 @@ npm test
 
 To run the Worker locally, copy `worker/.dev.vars.example` to `worker/.dev.vars`, add your private values, run `npm install`, then `npm run dev`. The local `/health` endpoint should return `{ "status": "ok" }`.
 
+## AR frontend files
+
+- `docs/index.html` and `docs/ar-app.js`: camera UI, MindAR tracking, and Telegram Mini App integration.
+- `docs/target-compiler.js`: the image-target compiler and local cache.
+- `docs/assets/inscription-reference.jpg`: the original photograph.
+- `docs/assets/inscription-tracking.png`: the recognition image.
+- `docs/assets/overlay.png`: transparent green letters.
+- `docs/overlay-preview.html`, `docs/reference.html`, and `docs/compile.html`: supporting tools.
+
+The full frontend was transferred from the existing Cloudflare site with SHA-256 verification using `.github/workflows/import-ar-site.yml`. All five image assets are committed to GitHub. A precompiled `targets.mind` file is not yet included; live camera tracking still requires testing on Android inside Telegram.
+
 ## Security and limitations
 
 - The Worker does not store images, user profiles, chat messages or API tokens.
 - It only responds to registered commands and ignores commands aimed at other bots.
 - The webhook rejects requests without the shared secret.
 - Group buttons use a URL because Telegram's `web_app` inline keyboard button works in private chats only.
-- The public repository does not automatically deploy anything until you configure GitHub Actions secrets and manually run the deployment workflow.
+- You must enable GitHub Pages under Settings → Pages to publish the static website. The Telegram Worker still requires private GitHub Actions secrets and a manual deployment run.
 - Tests cover webhook validation, group/private commands and URL behavior. Live Telegram webhook delivery and AR tracking require integration testing after deployment.
 
 MIT licensed. See [LICENSE](LICENSE).
