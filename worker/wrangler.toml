@@ -5,4 +5,3 @@ compatibility_date = "2026-10-01"
 [vars]
 BOT_USERNAME = "RomanInscriptionAR_bot"
 AR_URL = "https://jolly-lab-cef2.daviedeiana5.workers.dev/"
-GROUP_LAUNCH_URL = "https://t.me/RomanInscriptionAR_bot?startapp"
