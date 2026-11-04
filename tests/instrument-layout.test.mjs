@@ -78,3 +78,32 @@ test("fullscreen disabled by settings never invokes browser API", () => {
     else globalThis.document = originalDocument;
   }
 });
+
+test("landscape photographic frame remains completely within the viewport", async () => {
+  const { calculateInstrumentLayout, PHOTOGRAPHIC_INSTRUMENTS } = await import("../docs/instrument-layout.js");
+  for (const [width, height] of [[844,390],[1386,525],[1280,720],[512,320],[390,844]]) {
+    const result = calculateInstrumentLayout(width,height,"photographic");
+    const frame = result.frame;
+    const spec = PHOTOGRAPHIC_INSTRUMENTS[result.mode];
+    assert.ok(frame.x >= -1e-9, "frame x");
+    assert.ok(frame.y >= -1e-9, "frame y");
+    assert.ok(frame.x+frame.width <= width+1e-9,"frame width within viewport");
+    assert.ok(frame.y+frame.height <= height+1e-9,"frame height within viewport");
+    assert.equal(result.compass.x, spec.compass.x*result.scale+result.offsetX);
+    assert.equal(result.compass.y, spec.compass.y*result.scale+result.offsetY);
+    assert.equal(result.compass.diameter, spec.compass.radius*2*result.scale);
+    assert.ok(result.compass.diameter>0);
+  }
+});
+
+test("landscape resize preserves all photographic HUD elements without cropping", async () => {
+  const { calculateInstrumentLayout } = await import("../docs/instrument-layout.js");
+  const first=calculateInstrumentLayout(844,390,"photographic");
+  const second=calculateInstrumentLayout(390,844,"photographic");
+  const third=calculateInstrumentLayout(844,390,"photographic");
+  assert.ok(first.frame.width < 844);
+  assert.equal(first.frame.height,390);
+  assert.equal(first.mode,"landscape");
+  assert.equal(second.mode,"portrait");
+  assert.deepEqual(first,third);
+});

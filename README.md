@@ -131,3 +131,7 @@ The app now supports photographic HUD artwork in two independent files: `docs/as
 ## Compass center and privacy update
 
 The photographic compass dial now fills the inset brass aperture and remains centered under the static glass. The extra animated sonar/sweep over the camera has been removed. Absolute device-orientation data is used for magnetic heading without a geographic-location request by default (`compass.requestLocation=false`, `compass.preferTrueNorth=false`). Geographic location is needed only for optional conversion to true north, and sensor permissions can still apply. The WebP instrument frame, camera overlay and static Polaroid capture are unchanged.
+
+## Responsive framing correction
+
+Landscape mode preserves the complete frame with `object-fit: contain`, rather than cropping its decorative fittings. The compass and photographic artwork now use exactly the same measured transform, and rotation schedules additional measurements to accommodate changing browser chrome. Any horizontal letterboxing is finished with dark wooden side rails. The existing camera and symbol capture are not modified.

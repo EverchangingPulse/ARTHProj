@@ -75,13 +75,32 @@ a-scene canvas { display: block; }
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center center;
+  z-index: 1;
   user-select: none;
   -webkit-user-drag: none;
 }
+.instrument-picture::before,
+.instrument-picture::after {
+  display: none;
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: max(0px, calc((100% - var(--frame-width, 100%)) / 2 + 1px));
+  z-index: 0;
+  border-inline: 2px solid rgba(201, 151, 84, .38);
+  background:
+    repeating-radial-gradient(circle at 50% 18px, rgba(194, 146, 78, .68) 0 2px, rgba(70, 42, 29, .7) 3px 5px, transparent 6px 74px),
+    linear-gradient(90deg, #1c1311, #493021 18%, #241919 47%, #382519 70%, #100e11);
+  box-shadow: inset 0 0 24px rgba(0,0,0,.65);
+}
+.instrument-picture::before { left: 0; }
+.instrument-picture::after { right: 0; }
 .landscape-instrument { display: none; }
 @media (orientation: landscape) {
+  .instrument-picture::before, .instrument-picture::after { display: block; }
   .portrait-instrument { display: none; }
   .landscape-instrument { display: block; }
 }
@@ -100,17 +119,17 @@ a-scene canvas { display: block; }
   overflow: hidden;
   pointer-events: none;
   background: radial-gradient(circle, #264871 15%, #09111e 100%);
-  box-shadow: inset 0 0 13px rgba(0,0,0,.8);
+  box-shadow: inset 0 0 5px rgba(0,0,0,.5);
 }
 .embedded-compass.compass-concealed { visibility: hidden; }
 .compass-casing { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: 50%; }
 .compass-casing img {
   position: absolute;
   display: block;
-  width: 122%;
-  height: 122%;
-  left: -11%;
-  top: -11%;
+  width: 106%;
+  height: 106%;
+  left: -3%;
+  top: -3%;
   object-fit: contain;
   transform-origin: 50% 50%;
   will-change: transform;

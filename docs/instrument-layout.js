@@ -18,13 +18,13 @@ export const PHOTOGRAPHIC_INSTRUMENTS = Object.freeze({
     width: 941,
     height: 1672,
     dial: Object.freeze({ x: 466, y: 715, radius: 289 }),
-    compass: Object.freeze({ x: 207, y: 1238, radius: 88 })
+    compass: Object.freeze({ x: 207, y: 1238, radius: 86 })
   }),
   landscape: Object.freeze({
     width: 1200,
     height: 650,
     dial: Object.freeze({ x: 602, y: 330, radius: 245 }),
-    compass: Object.freeze({ x: 141, y: 234, radius: 57 })
+    compass: Object.freeze({ x: 141, y: 234, radius: 55 })
   })
 });
 
@@ -35,7 +35,7 @@ export function calculateInstrumentLayout(width, height, artwork = "illustrated"
   const mode = width > height ? "landscape" : "portrait";
   const selected = artwork === "photographic" ? PHOTOGRAPHIC_INSTRUMENTS : ILLUSTRATED_INSTRUMENTS;
   const spec = selected[mode];
-  const scale = Math.max(width / spec.width, height / spec.height);
+  const scale = Math.min(width / spec.width, height / spec.height);
   const offsetX = (width - spec.width * scale) / 2;
   const offsetY = (height - spec.height * scale) / 2;
   const position = point => ({
@@ -47,6 +47,12 @@ export function calculateInstrumentLayout(width, height, artwork = "illustrated"
     mode,
     compass: position(spec.compass),
     dial: position(spec.dial),
+    frame: {
+      x: offsetX,
+      y: offsetY,
+      width: spec.width * scale,
+      height: spec.height * scale
+    },
     scale,
     offsetX,
     offsetY
@@ -60,7 +66,15 @@ export class InstrumentLayout {
     this.last = "";
     this.listener = options.onResize || (() => {});
     this.onChange = () => this.schedule();
+    this.onRotate = () => {
+      this.schedule();
+      this.clearOrientationTimers();
+      for (const delay of [150, 400, 850]) {
+        this.orientationTimers.push(window.setTimeout(() => this.schedule(), delay));
+      }
+    };
     this.observer = null;
+    this.orientationTimers = [];
   }
 
   start() {
@@ -69,9 +83,9 @@ export class InstrumentLayout {
       this.observer.observe(this.stage);
     }
     window.addEventListener("resize", this.onChange);
-    window.addEventListener("orientationchange", this.onChange);
+    window.addEventListener("orientationchange", this.onRotate);
     window.visualViewport?.addEventListener("resize", this.onChange);
-    window.screen.orientation?.addEventListener?.("change", this.onChange);
+    window.screen.orientation?.addEventListener?.("change", this.onRotate);
     this.schedule();
   }
 
@@ -100,19 +114,27 @@ export class InstrumentLayout {
       this.stage.style.setProperty("--dial-x", layout.dial.x.toFixed(2) + "px");
       this.stage.style.setProperty("--dial-y", layout.dial.y.toFixed(2) + "px");
       this.stage.style.setProperty("--dial-size", layout.dial.diameter.toFixed(2) + "px");
+      this.stage.style.setProperty("--frame-width", layout.frame.width.toFixed(2) + "px");
+      this.stage.style.setProperty("--frame-height", layout.frame.height.toFixed(2) + "px");
       const changed = this.last !== "";
       this.last = signature;
       if (changed) this.listener();
     });
   }
 
+  clearOrientationTimers() {
+    for (const handle of this.orientationTimers) window.clearTimeout(handle);
+    this.orientationTimers.length = 0;
+  }
+
   stop() {
     if (this.frame !== null) cancelAnimationFrame(this.frame);
     this.frame = null;
+    this.clearOrientationTimers();
     this.observer?.disconnect();
     window.removeEventListener("resize", this.onChange);
-    window.removeEventListener("orientationchange", this.onChange);
+    window.removeEventListener("orientationchange", this.onRotate);
     window.visualViewport?.removeEventListener("resize", this.onChange);
-    window.screen.orientation?.removeEventListener?.("change", this.onChange);
+    window.screen.orientation?.removeEventListener?.("change", this.onRotate);
   }
 }

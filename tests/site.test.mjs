@@ -260,7 +260,7 @@ test("automatic camera and Polaroid gestures remain usable with only the save bu
   assert.match(app, /this\.stopTracking\(\);\s*this\.running = false;\s*this\.view\.update\("Developing photograph/);
   assert.match(css, /--app-height/);
   assert.doesNotMatch(css, /min-height: 530px|47dvh/);
-  assert.match(text("index.html"), /ar-app\.js\?v=7\.1\.0/);
+  assert.match(text("index.html"), /ar-app\.js\?v=8\.0\.0/);
 });
 
 test("Renaissance ornament stays visible during live camera but disappears for captured photograph", () => {
@@ -368,7 +368,7 @@ test("compass dial is magnified concentrically to fill the photographed brass ap
   const css = text("styles.css");
   const html = text("index.html");
   const app = text("ar-app.js");
-  assert.match(css, /\.compass-casing img \{[^}]+width: 122%;[^}]+height: 122%;[^}]+left: -11%;[^}]+top: -11%;[^}]+transform-origin: 50% 50%;/s);
+  assert.match(css, /\.compass-casing img \{[^}]+width: 106%;[^}]+height: 106%;[^}]+left: -3%;[^}]+top: -3%;[^}]+transform-origin: 50% 50%;/s);
   assert.match(html, /id="wind-rose"/);
   assert.doesNotMatch(html, /scanner-radar|scanner-ring|scanner-sweep/);
   assert.doesNotMatch(css, /turn-orbit|conic-gradient/);
@@ -382,4 +382,17 @@ test("default magnetic heading uses no geographic position or location prompt", 
   assert.equal(settings.compass.requestLocation, false);
   assert.match(app, /settings\.compass\.preferTrueNorth && settings\.compass\.requestLocation/);
   assert.doesNotMatch(app, /finally\(\(\) => compass\.requestLocation\(\)\)/);
+});
+
+test("instrument fit uses contain and exactly matches compass geometry in both orientations", () => {
+  const css = text("styles.css");
+  const html = text("index.html");
+  const layout = text("instrument-layout.js");
+  assert.match(css, /\.scanner-instrument \{[^}]+object-fit: contain;/s);
+  assert.match(css, /\.instrument-picture::before/);
+  assert.match(css, /--frame-width/);
+  assert.match(layout, /Math\.min\(width \/ spec\.width, height \/ spec\.height\)/);
+  assert.match(layout, /--frame-width/);
+  assert.match(layout, /orientationTimers/);
+  assert.match(html, /styles\.css\?v=8\.0\.0/);
 });
