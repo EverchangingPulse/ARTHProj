@@ -46,7 +46,7 @@ Edit [`docs/config/settings.json`](../docs/config/settings.json). All parameters
 | `tracking.maxTrack` | Maximum targets tracked simultaneously (1–3) |
 | `overlay.opacity` | Transparency of AR symbol planes, 0.1–1.0 |
 | `scanner.enabled` | Enables or hides the scanner decoration |
-| `scanner.style` | `astrolabe` (bronze instrument with animated sextant arm) or `sonar` (legacy green radar) |
+| `scanner.enabled` | When enabled, display the photographic instrument chassis |
 | `compass.enabled` | Show or hide the independent compass rose |
 | `compass.preferTrueNorth` | Correct magnetic heading to true north when location is authorized |
 | `compass.requestLocation` | Request location coordinates for local WMM2025 magnetic-declination calculation |
@@ -73,7 +73,7 @@ Live recognition, stability, and photo capture still need validation on a physic
 
 ## Italian brigandine astrolabe and north compass
 
-The scanner uses separate `docs/assets/astrolabe-portrait.svg` and `docs/assets/astrolabe-landscape.svg` compositions, both derived from the original `docs/assets/astrolabe-scanner.svg`. They use walnut beams, blue riveted brigandine sections, mechanical rails, latches, brass graduations, and animated sextant arms. The alternate legacy green sonar remains available through `scanner.style`.
+The scanner uses separate `docs/assets/astrolabe-portrait.svg` and `docs/assets/astrolabe-landscape.svg` compositions, both derived from the original `docs/assets/astrolabe-scanner.svg`. They use walnut beams, blue riveted brigandine sections, mechanical rails, latches, brass graduations, and animated sextant arms. The alternate legacy green sonar remains available through `scanner.enabled`.
 
 The separate `docs/assets/wind-rose.svg` is rotated by `docs/north-compass.js`, using mobile absolute device-orientation events when available. The compass uses WMM2025 declination calculated locally from location coordinates to convert magnetic heading into true heading. The compass now has no visible text or numbers. Without location permission the rose follows magnetic heading, where available; without orientation data it remains stationary rather than displaying an invented heading. On platforms that require a gesture for orientation permission, the first tap anywhere on the instrument requests access.
 
@@ -100,3 +100,9 @@ The frame remains visible during camera scanning and disappears before the Polar
 ## Installing the photorealistic HUD artwork
 
 Upload the two approved photo-based binaries to `docs/assets/hud-portrait.webp` and `docs/assets/hud-landscape.webp`. The files must have exactly those names. The central black opening and compass dial were cut into transparent layers before exporting the files; do not flatten or re-encode them as opaque JPEGs. The app automatically displays the photo-based version when each asset is available and falls back to the previous SVG on a missing image. Once the images are committed, no JSON settings need to change. The software already tracks each viewbox and aligns the rotating compass accordingly.
+
+## Compass-only magnetic heading and no animated sonar
+
+The photographic compass is centered on the transparent aperture in each native WebP image. The wind rose is enlarged concentrically by 22% under the fixed brass rim, so the enamel face fills the available opening; orientation changes preserve the artwork-aligned coordinates. The rotating radar/sonar sweep and its CSS animation were removed entirely from the public page.
+
+The default settings are `compass.preferTrueNorth: false` and `compass.requestLocation: false`. As a result, opening the site does **not** request geographic location and does not invoke the Geolocation API. When available, `DeviceOrientationEvent` supplies an absolute magnetic heading, and the rose rotates visually without numeric direction labels. Some browsers require a motion/orientation permission gesture; compass functionality is subject to device hardware support and local magnetic interference. For optional true-north correction, set both configuration flags to `true` and grant location permission.

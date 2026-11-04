@@ -127,3 +127,7 @@ Both orientations use cohesive, full-viewport mechanical chassis illustrations w
 ## Photorealistic photographic HUD assets
 
 The app now supports photographic HUD artwork in two independent files: `docs/assets/hud-portrait.webp` and `docs/assets/hud-landscape.webp`. These are full-frame transparent WebP images derived from the approved Renaissance apparatus photograph. They contain transparent cutouts for the live camera and a separate compass rose. `docs/instrument-artwork.js` detects media errors and falls back to the prior SVGs if the files have not yet been uploaded. `docs/instrument-layout.js` aligns the compass with the corresponding cutouts using each asset's native coordinate system. Once both binary images are uploaded to `docs/assets/`, GitHub Pages deploys them automatically without another code edit.
+
+## Compass center and privacy update
+
+The photographic compass dial now fills the inset brass aperture and remains centered under the static glass. The extra animated sonar/sweep over the camera has been removed. Absolute device-orientation data is used for magnetic heading without a geographic-location request by default (`compass.requestLocation=false`, `compass.preferTrueNorth=false`). Geographic location is needed only for optional conversion to true north, and sensor permissions can still apply. The WebP instrument frame, camera overlay and static Polaroid capture are unchanged.

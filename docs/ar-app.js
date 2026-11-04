@@ -1,5 +1,5 @@
-import { loadAppSettings } from "./app-config.js?v=4.0.0";
-import { NorthCompass } from "./north-compass.js?v=4.0.0";
+import { loadAppSettings } from "./app-config.js?v=7.1.0";
+import { NorthCompass } from "./north-compass.js?v=7.1.0";
 import { loadTargets } from "./target-manifest.js?v=3.0.0";
 import { TargetCompiler } from "./target-compiler.js?v=3.0.0";
 import { InstrumentLayout } from "./instrument-layout.js?v=7.0.0";
@@ -170,7 +170,6 @@ class ArExperience {
       this.freezeDelayMs = settings.capture.freezeDelayMs;
       this.sound.enabled = settings.capture.shutterSound;
       this.view.scannerEnabled = settings.scanner.enabled;
-      this.view.scanner.dataset.style = settings.scanner.style;
       this.targets = targets;
       await this.waitForScene();
       await this.installAnchors();
@@ -460,10 +459,10 @@ function initialize() {
   void loadAppSettings().then(settings => {
     fullscreen.onLaunch(settings.display.fullscreen);
     compass.start(settings.compass);
-    if (settings.camera.autoStart) {
-      return app.start(settings).finally(() => compass.requestLocation());
+    if (settings.compass.preferTrueNorth && settings.compass.requestLocation) {
+      compass.requestLocation();
     }
-    compass.requestLocation();
+    if (settings.camera.autoStart) return app.start(settings);
     app.view.update("Camera ready; touch the instrument to begin.", "stopped");
   }).catch(error => {
     app.view.update(error?.message || "Cannot load the instrument.", "error");

@@ -10,8 +10,7 @@
     "opacity": 1
   },
   "scanner": {
-    "enabled": true,
-    "style": "astrolabe"
+    "enabled": true
   },
   "capture": {
     "autoFreeze": true,
@@ -20,8 +19,8 @@
   },
   "compass": {
     "enabled": true,
-    "preferTrueNorth": true,
-    "requestLocation": true,
+    "preferTrueNorth": false,
+    "requestLocation": false,
     "headingSmoothing": 0.21
   },
   "display": {

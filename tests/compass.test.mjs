@@ -47,9 +47,17 @@ test("WMM2025 model matches the published reference declination sample", () => {
 
 test("compass config can disable location; invalid smoothing is rejected", () => {
   const parsed = parseAppSettings(settings);
-  assert.equal(parsed.compass.preferTrueNorth, true);
-  assert.equal(parsed.compass.requestLocation, true);
+  assert.equal(parsed.compass.preferTrueNorth, false);
+  assert.equal(parsed.compass.requestLocation, false);
   assert.equal(parsed.compass.headingSmoothing, 0.21);
   assert.throws(() => parseAppSettings({ ...settings, compass: { ...settings.compass, headingSmoothing: 0 } }), /headingSmoothing/);
   assert.throws(() => parseAppSettings({ ...settings, compass: { ...settings.compass, enabled: "yes" } }), /compass.enabled/);
+});
+
+test("geolocation correction stays disabled in default compass configuration", () => {
+  const parsed = parseAppSettings(settings);
+  assert.equal(parsed.compass.enabled, true);
+  assert.equal(parsed.compass.requestLocation, false);
+  assert.equal(parsed.compass.preferTrueNorth, false);
+  assert.ok(Number.isFinite(headingFromOrientation({ absolute: true, alpha: 25 })));
 });

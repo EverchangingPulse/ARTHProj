@@ -72,10 +72,9 @@ test("admin settings JSON is validated and has valid camera defaults", () => {
   assert.equal(settings.capture.shutterSound, true);
   assert.equal(settings.scanner.enabled, true);
   assert.equal(settings.compass.enabled, true);
-  assert.equal(settings.compass.preferTrueNorth, true);
-  assert.equal(settings.compass.requestLocation, true);
+  assert.equal(settings.compass.preferTrueNorth, false);
+  assert.equal(settings.compass.requestLocation, false);
   assert.equal(settings.compass.headingSmoothing, 0.21);
-  assert.equal(settings.scanner.style, "astrolabe");
   assert.equal(settings.display.fullscreen, true);
 });
 
@@ -85,7 +84,7 @@ test("settings config rejects invalid values", () => {
   assert.throws(() => parseAppSettings({ ...config, overlay: { opacity: 3 } }), /overlay.opacity/);
   assert.throws(() => parseAppSettings({ ...config, capture: { ...config.capture, shutterSound: "yes" } }), /shutterSound/);
   assert.throws(() => parseAppSettings({ ...config, camera: { autoStart: "true" } }), /camera.autoStart/);
-  assert.throws(() => parseAppSettings({ ...config, scanner: { enabled: true, style: "invalid" } }), /scanner.style/);
+  assert.throws(() => parseAppSettings({ ...config, scanner: { enabled: "yes" } }), /scanner.enabled/);
   assert.throws(() => parseAppSettings({ ...config, display: { fullscreen: "yes" } }), /display.fullscreen/);
 });
 
@@ -144,9 +143,9 @@ test("astrolabe scanner is a transparent vector asset with a moving sextant arm"
   assert.match(html, /id="landscape-instrument"[^>]+src="\.\/assets\/hud-landscape\.webp"/);
   assert.match(text("instrument-artwork.js"), /astrolabe-portrait\.svg/);
   assert.match(text("instrument-artwork.js"), /astrolabe-landscape\.svg/);
-  assert.match(app, /this\.view\.scanner\.dataset\.style = settings\.scanner\.style/);
-  assert.match(css, /\.scanner-hud\[data-style="astrolabe"\] \.scanner-radar/);
-  assert.match(css, /\.scanner-hud\[data-style="sonar"\] \.instrument-picture/);
+  assert.doesNotMatch(html, /scanner-radar|scanner-ring|scanner-sweep|data-style/);
+  assert.doesNotMatch(css, /scanner-radar|scanner-ring|scanner-sweep|turn-orbit/);
+  assert.doesNotMatch(app, /scanner\.dataset\.style/);
   assert.match(svg, /<svg[^>]+viewBox="0 0 900 650"/);
   assert.match(svg, /class="sight"/);
   assert.match(svg, /class="turn"/);
@@ -200,7 +199,7 @@ test("compass and theme settings are administrator-configured", () => {
   assert.match(app, /compass\.start\(settings\.compass\)/);
   assert.match(app, /compass\.requestLocation\(\)/);
   assert.match(settings, /compass\.headingSmoothing/);
-  assert.match(settings, /scanner\.style/);
+  assert.match(settings, /compass\.requestLocation/);
   assert.doesNotMatch(text("index.html"), /id="compass-settings"/);
   assert.ok(existsSync(join(root, "vendor/WMM2025-LICENSE.txt")));
 });
@@ -262,7 +261,7 @@ test("automatic camera and Polaroid gestures remain usable with only the save bu
   assert.match(app, /this\.stopTracking\(\);\s*this\.running = false;\s*this\.view\.update\("Developing photograph/);
   assert.match(css, /--app-height/);
   assert.doesNotMatch(css, /min-height: 530px|47dvh/);
-  assert.match(text("index.html"), /ar-app\.js\?v=7\.0\.0/);
+  assert.match(text("index.html"), /ar-app\.js\?v=7\.1\.0/);
 });
 
 test("Renaissance ornament stays visible during live camera but disappears for captured photograph", () => {
@@ -364,4 +363,24 @@ test("photographic image must contain transparent camera and compass apertures w
     assert.equal(data.toString("ascii", 0, 4), "RIFF");
     assert.equal(data.toString("ascii", 8, 12), "WEBP");
   }
+});
+
+test("compass dial is magnified concentrically to fill the photographed brass aperture", () => {
+  const css = text("styles.css");
+  const html = text("index.html");
+  const app = text("ar-app.js");
+  assert.match(css, /\.compass-casing img \{[^}]+width: 122%;[^}]+height: 122%;[^}]+left: -11%;[^}]+top: -11%;[^}]+transform-origin: 50% 50%;/s);
+  assert.match(html, /id="wind-rose"/);
+  assert.doesNotMatch(html, /scanner-radar|scanner-ring|scanner-sweep/);
+  assert.doesNotMatch(css, /turn-orbit|conic-gradient/);
+  assert.doesNotMatch(app, /dataset\.style = settings\.scanner\.style/);
+});
+
+test("default magnetic heading uses no geographic position or location prompt", () => {
+  const settings = json("config/settings.json");
+  const app = text("ar-app.js");
+  assert.equal(settings.compass.preferTrueNorth, false);
+  assert.equal(settings.compass.requestLocation, false);
+  assert.match(app, /settings\.compass\.preferTrueNorth && settings\.compass\.requestLocation/);
+  assert.doesNotMatch(app, /finally\(\(\) => compass\.requestLocation\(\)\)/);
 });
