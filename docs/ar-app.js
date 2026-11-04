@@ -1,6 +1,5 @@
 import { loadAppSettings } from "./app-config.js?v=4.0.0";
 import { NorthCompass } from "./north-compass.js?v=4.0.0";
-import { ResponsiveScanner } from "./responsive-scanner.js?v=4.1.0";
 import { loadTargets } from "./target-manifest.js?v=3.0.0";
 import { TargetCompiler } from "./target-compiler.js?v=3.0.0";
 
@@ -8,41 +7,16 @@ const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
 
 class StatusView {
   constructor() {
-    this.status = document.getElementById("status-text");
-    this.indicator = document.getElementById("status-indicator");
-    this.label = document.getElementById("tracking-label");
-    this.pill = document.getElementById("tracking-pill");
-    this.placeholder = document.getElementById("camera-placeholder");
-    this.retry = document.getElementById("retry-btn");
-    this.scan = document.getElementById("scan-btn");
-    this.capture = document.getElementById("capture-btn");
-    this.save = document.getElementById("save-btn");
-    this.stop = document.getElementById("stop-btn");
+    this.status = document.getElementById("sr-status");
     this.scanner = document.getElementById("scanner-hud");
-    this.scannerEnabled = true;
     this.polaroid = document.getElementById("polaroid");
+    this.scannerEnabled = true;
   }
 
   update(message, state) {
     this.status.textContent = message;
-    this.indicator.dataset.state = state;
-    this.pill.dataset.state = state;
-    this.label.textContent = {
-      loading: "STARTING",
-      searching: "SCANNING",
-      found: "LOCKED",
-      frozen: "FROZEN",
-      stopped: "OFF",
-      error: "ERROR"
-    }[state] || "READY";
-    this.placeholder.hidden = ["searching", "found", "frozen"].includes(state);
-    this.retry.hidden = !["error", "stopped"].includes(state);
-    this.scan.hidden = state !== "frozen";
-    this.save.hidden = state !== "frozen";
-    this.capture.disabled = state !== "found";
-    this.stop.disabled = !["searching", "found"].includes(state);
-    this.scanner.hidden = !["searching", "found"].includes(state) || !this.scannerEnabled;
     this.scanner.dataset.state = state;
+    this.scanner.hidden = !this.scannerEnabled || ["frozen", "developing", "stopped"].includes(state);
     this.polaroid.hidden = state !== "frozen";
   }
 }
@@ -141,7 +115,6 @@ class ArExperience {
     this.preview = new CameraPreview(document.getElementById("permission-preview"));
     this.snapshot = document.getElementById("frozen-canvas");
     this.flash = document.getElementById("capture-flash");
-    this.polaroidTitle = document.getElementById("polaroid-title");
     this.sound = new MechanicalShutter();
     this.anchors = [];
     this.targets = [];
@@ -301,10 +274,10 @@ class ArExperience {
     try {
       this.composeSnapshot();
       this.frozen = true;
-      this.polaroidTitle.textContent = anchor.target.name;
       this.sound.click();
       this.stopTracking();
-      this.view.update("Developing photograph…", "loading");
+      this.running = false;
+      this.view.update("Developing photograph…", "developing");
       this.flash.hidden = true;
       void this.flash.offsetWidth;
       this.flash.hidden = false;
@@ -354,38 +327,9 @@ class ArExperience {
     context.drawImage(overlayCanvas, (overlayRect.left - stage.left) * ratio, (overlayRect.top - stage.top) * ratio, overlayRect.width * ratio, overlayRect.height * ratio);
   }
 
-  savePicture() {
-    if (!this.frozen) return;
-    const canvas = document.createElement("canvas");
-    const photograph = this.snapshot;
-    const margin = Math.round(photograph.width * 0.055);
-    const captionHeight = Math.round(photograph.width * 0.17);
-    canvas.width = photograph.width + margin * 2;
-    canvas.height = photograph.height + margin + captionHeight;
-    const ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#f1efe7";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(photograph, margin, margin);
-    ctx.fillStyle = "#333b40";
-    ctx.font = Math.max(16, Math.round(canvas.width * .028)) + "px Georgia, serif";
-    ctx.fillText(this.polaroidTitle.textContent.slice(0, 48), margin + 9, canvas.height - captionHeight * .36, canvas.width - 2 * margin - 18);
-    const link = document.createElement("a");
-    link.download = "arthproj-" + Date.now() + ".png";
-    link.href = canvas.toDataURL("image/png");
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-  }
-
   setOpacity(value) {
     this.opacity = value;
     for (const anchor of this.anchors) anchor.plane.setAttribute("material", "opacity", value);
-  }
-
-  async refreshTargets() {
-    if (this.starting) throw new Error("Camera is still starting. Try again shortly.");
-    this.stop();
-    await this.start();
   }
 
   installResizeGuard(system) {
@@ -433,43 +377,89 @@ class ArExperience {
   }
 }
 
-class TelegramIntegration {
-  constructor() {
-    this.app = window.Telegram?.WebApp;
-    this.app?.ready();
-    this.app?.expand();
-  }
+function installViewportSync(app) {
+  const stage = document.getElementById("camera-stage");
+  let frame = null;
+  const pending = new Set();
 
-  openExternal() {
-    if (this.app?.openLink) this.app.openLink(location.href);
-    else window.open(location.href, "_blank", "noopener,noreferrer");
-  }
+  const sync = () => {
+    const height = window.visualViewport?.height || window.innerHeight;
+    if (Number.isFinite(height) && height > 0) {
+      document.documentElement.style.setProperty("--app-height", Math.round(height) + "px");
+    }
+
+    const system = app.scene.systems?.["mindar-image-system"];
+    if (app.running && system?.video && system?.controller) {
+      system._resize?.();
+    }
+  };
+
+  const schedule = () => {
+    if (frame !== null) return;
+    frame = requestAnimationFrame(() => {
+      frame = null;
+      sync();
+    });
+  };
+
+  const onRotation = () => {
+    schedule();
+    for (const delay of [180, 450]) {
+      const timeout = setTimeout(() => {
+        pending.delete(timeout);
+        schedule();
+      }, delay);
+      pending.add(timeout);
+    }
+  };
+
+  const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(schedule) : null;
+  observer?.observe(stage);
+  window.addEventListener("resize", schedule);
+  window.addEventListener("orientationchange", onRotation);
+  window.visualViewport?.addEventListener("resize", schedule);
+  window.screen.orientation?.addEventListener?.("change", onRotation);
+  schedule();
+
+  return () => {
+    observer?.disconnect();
+    window.removeEventListener("resize", schedule);
+    window.removeEventListener("orientationchange", onRotation);
+    window.visualViewport?.removeEventListener("resize", schedule);
+    window.screen.orientation?.removeEventListener?.("change", onRotation);
+    for (const timeout of pending) clearTimeout(timeout);
+    if (frame !== null) cancelAnimationFrame(frame);
+  };
 }
 
 function initialize() {
   const app = new ArExperience();
-  const telegram = new TelegramIntegration();
   const compass = new NorthCompass(document.getElementById("compass-panel"));
-  const responsiveScanner = new ResponsiveScanner(document.getElementById("camera-stage"), () => {
-    const system = app.scene.systems?.["mindar-image-system"];
-    if (app.running && system?.video && system?.controller) system._resize?.();
-  });
-  responsiveScanner.start();
+  const webApp = window.Telegram?.WebApp;
+  webApp?.ready();
+  webApp?.expand();
+  const disposeViewport = installViewportSync(app);
+  const stage = document.getElementById("camera-stage");
 
-  document.getElementById("retry-btn").addEventListener("click", () => void app.start());
-  document.getElementById("scan-btn").addEventListener("click", () => void app.start());
-  document.getElementById("stop-btn").addEventListener("click", () => app.stop());
-  document.getElementById("capture-btn").addEventListener("click", () => {
+  stage.addEventListener("pointerdown", () => {
     app.sound.unlock();
-    void app.freeze();
+    void compass.askPermission();
   });
-  document.getElementById("save-btn").addEventListener("click", () => app.savePicture());
-  document.getElementById("external-btn").addEventListener("click", () => telegram.openExternal());
-  document.addEventListener("pointerdown", () => app.sound.unlock(), { once: true });
+
+  stage.addEventListener("pointerup", () => {
+    if (app.frozen || (!app.starting && !app.running)) {
+      void app.start();
+      return;
+    }
+    if (app.running && app.activeAnchor && !app.autoFreeze) {
+      void app.freeze();
+    }
+  });
+
   window.addEventListener("pagehide", () => {
     app.stop();
     compass.stop();
-    responsiveScanner.stop();
+    disposeViewport();
     app.compiler.dispose();
   });
 
@@ -479,9 +469,9 @@ function initialize() {
       return app.start(settings).finally(() => compass.requestLocation());
     }
     compass.requestLocation();
-    app.view.update("Camera ready. Tap Retry camera to begin.", "stopped");
+    app.view.update("Camera ready; touch the instrument to begin.", "stopped");
   }).catch(error => {
-    app.view.update(error?.message || "Could not read AR settings.", "error");
+    app.view.update(error?.message || "Cannot load the instrument.", "error");
   });
 }
 

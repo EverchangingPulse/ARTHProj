@@ -55,7 +55,7 @@ Edit [`docs/config/settings.json`](../docs/config/settings.json). All parameters
 | `capture.freezeDelayMs` | Time in milliseconds before capture (0–5000) |
 | `capture.shutterSound` | Attempts to play synthesized mechanical shutter sound |
 
-Only camera actions remain available to visitors: retry, stop, manual freeze, scan again, download the Polaroid image, or open in a browser.
+The public page contains no buttons, labels, or external links. Scanning starts automatically. Tapping the developed still photograph restarts scanning. If the camera is unavailable or auto-start is disabled, tapping the instrument retries camera access. When automatic capture is disabled, tapping an already-recognized picture freezes the frame.
 
 The sound setting cannot override Android/Telegram browser autoplay restrictions. Some browsers require a user interaction before audio playback. Camera permission is always controlled by the browser, even when `camera.autoStart` is `true`.
 
@@ -73,12 +73,18 @@ Live recognition, stability, and photo capture still need validation on a physic
 
 ## Italian brigandine astrolabe and north compass
 
-The scanner uses `docs/assets/astrolabe-scanner.svg`, an ornamental frame with walnut beams, blue riveted brigandine sections, mechanical rails, latches, brass radial graduations, and an animated sextant arm. The alternate legacy green sonar remains available through `scanner.style`.
+The scanner uses separate `docs/assets/astrolabe-portrait.svg` and `docs/assets/astrolabe-landscape.svg` compositions, both derived from the original `docs/assets/astrolabe-scanner.svg`. They use walnut beams, blue riveted brigandine sections, mechanical rails, latches, brass graduations, and animated sextant arms. The alternate legacy green sonar remains available through `scanner.style`.
 
-The separate `docs/assets/wind-rose.svg` is rotated by `docs/north-compass.js`, using mobile absolute device-orientation events when available. The compass uses WMM2025 declination calculated locally from location coordinates to convert magnetic heading into true heading. It displays `TRUE N` only after obtaining a valid declination. Without location permission it displays `MAG N` if magnetic orientation is available; when sensors are blocked or unsupported, it displays its limitation instead of showing a fabricated heading. The iOS permission API may require a visitor to tap **Enable compass**.
+The separate `docs/assets/wind-rose.svg` is rotated by `docs/north-compass.js`, using mobile absolute device-orientation events when available. The compass uses WMM2025 declination calculated locally from location coordinates to convert magnetic heading into true heading. The compass now has no visible text or numbers. Without location permission the rose follows magnetic heading, where available; without orientation data it remains stationary rather than displaying an invented heading. On platforms that require a gesture for orientation permission, the first tap anywhere on the instrument requests access.
 
 Phone compass hardware can be affected by nearby metal and electromagnetic interference. This UI is for an AR experience, not safety-critical navigation. WMM2025 model code is adapted from Darren Yeates' MIT-licensed magvar project; see `docs/vendor/WMM2025-LICENSE.txt`.
 
-## Responsive scanner and rotation
+## Full-screen immersive interface
 
-The frame is fitted to the actual visible camera region between the header and bottom controls. The layout is measured by `docs/responsive-scanner.js` using `ResizeObserver`, the browser's `visualViewport`, and orientation-change events. The original 900:650 frame aspect ratio is maintained rather than stretching the circular astrolabe into an ellipse. On short landscape screens, navigation and status controls compact automatically; the camera does not need to restart on rotation. The compass reserves space in landscape layouts. The Polaroid capture panel also uses the measured free viewport height.
+The public interface intentionally contains no text, buttons, links, or navigation to other pages. Its two independent image layouts are selected by the browser using `<picture>` and `(orientation: landscape)`. Both use transparent SVG artwork and `object-fit: contain` so the camera remains visible beneath the instrument. Android and Telegram browser chrome is external to the website and cannot be removed by site code.
+
+The compass is visually enclosed in a riveted brass housing with a hinge, a latch, and a stationary simulated convex glass lens. Only the inner `wind-rose.svg` rotates. No direction text, degrees, or sensor status is displayed.
+
+On successful image recognition, the scanner disappears before the shutter effect and the static photograph appears. The still photograph stays on screen until touched; that touch restarts camera tracking without a visible button. Errors can be retried by touching the instrument; permission denials must still be changed in Android browser settings. Sound can be unavailable until a user interaction due to browser restrictions.
+
+GitHub Pages is public static hosting. Removing links from the page does **not** make the project source, URL, or downloaded assets inaccessible to visitors. Access control would require a different hosting architecture.

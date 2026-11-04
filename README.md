@@ -111,3 +111,7 @@ MIT licensed. See [LICENSE](LICENSE).
 ## Compass rose and antique scanner
 
 The astrolabe theme now includes blue brigandine panels, aged walnut crossbars, brass rails, pins, pivot mechanisms, and a rotating sextant sight. Its standalone *rosa dei venti* follows the phone’s absolute orientation. When the user grants geolocation, a locally bundled WMM2025 model corrects magnetic north into true north; otherwise the compass identifies the magnetic heading or the lack of sensor permission. All compass behavior is controlled by `docs/config/settings.json`, and no coordinates are transmitted to a compass server. See `docs/ADMIN.md` for settings and browser limitations.
+
+## Immersive Renaissance presentation
+
+The site has no visible navigation, status panels, modern controls, or compass bearing text. Browser-native permission prompts still apply. The portrait and landscape instruments are `docs/assets/astrolabe-portrait.svg` and `docs/assets/astrolabe-landscape.svg`; the rose rotates beneath a fixed glass-and-brass hatch. Camera tracking and all recognition targets remain administrator-configured. A user taps the finished still photograph to scan again. The site is publicly accessible because GitHub Pages cannot hide its source or assets.

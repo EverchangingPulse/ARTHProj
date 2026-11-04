@@ -35,10 +35,6 @@ export class NorthCompass {
   constructor(root) {
     this.root = root;
     this.rose = document.getElementById("wind-rose");
-    this.headingLabel = document.getElementById("compass-heading");
-    this.modeLabel = document.getElementById("compass-mode");
-    this.permissionButton = document.getElementById("compass-enable");
-    this.permissionButton.addEventListener("click", () => void this.askPermission());
     this.onOrientation = event => this.update(event);
     this.started = false;
     this.hasAbsolute = false;
@@ -46,6 +42,7 @@ export class NorthCompass {
     this.declination = null;
     this.lastValidReading = 0;
     this.minimumUpdateMs = 45;
+    this.permissionRequested = false;
   }
 
   start(settings) {
@@ -53,49 +50,36 @@ export class NorthCompass {
     this.started = true;
     this.settings = settings;
     this.root.hidden = false;
-    this.modeLabel.textContent = "SEARCHING N";
     window.addEventListener("deviceorientationabsolute", this.onOrientation);
     window.addEventListener("deviceorientation", this.onOrientation);
-    if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
-      this.permissionButton.hidden = false;
-      this.modeLabel.textContent = "TAP ENABLE";
-    }
   }
 
   requestLocation() {
     if (!this.started || !this.settings.preferTrueNorth || !this.settings.requestLocation) return;
-    if (!navigator.geolocation) {
-      this.setMode("MAG N");
-      return;
-    }
+    if (!navigator.geolocation) return;
     navigator.geolocation.getCurrentPosition(
       position => {
         try {
           const { latitude, longitude, altitude } = position.coords;
           const variation = magvar(latitude, longitude, Number.isFinite(altitude) ? altitude / 1000 : 0);
           if (Number.isFinite(variation)) this.declination = variation;
-          this.setMode(this.declination === null ? "MAG N" : "TRUE N");
         } catch {
-          this.setMode("MAG N");
+          this.declination = null;
         }
       },
-      () => this.setMode("MAG N"),
+      () => {},
       { enableHighAccuracy: false, timeout: 13000, maximumAge: 900000 }
     );
   }
 
   async askPermission() {
+    if (!this.started || this.permissionRequested) return;
     if (typeof DeviceOrientationEvent === "undefined" || typeof DeviceOrientationEvent.requestPermission !== "function") return;
+    this.permissionRequested = true;
     try {
-      const granted = await DeviceOrientationEvent.requestPermission(true);
-      if (granted !== "granted") {
-        this.modeLabel.textContent = "SENSOR BLOCKED";
-        return;
-      }
-      this.permissionButton.hidden = true;
-      this.modeLabel.textContent = "SEARCHING N";
+      await DeviceOrientationEvent.requestPermission(true);
     } catch {
-      this.modeLabel.textContent = "SENSOR BLOCKED";
+      this.permissionRequested = false;
     }
   }
 
@@ -110,23 +94,13 @@ export class NorthCompass {
     if (now - this.lastValidReading < this.minimumUpdateMs) return;
     this.lastValidReading = now;
 
-    const trueNorth = this.declination !== null && this.settings.preferTrueNorth;
-    const heading = trueNorth ? applyDeclination(magneticHeading, this.declination) : magneticHeading;
-    if (this.lastAngle === null) {
-      this.lastAngle = heading;
-    } else {
-      this.lastAngle += shortestArc(this.lastAngle, heading) * this.settings.headingSmoothing;
-    }
-    this.rose.style.transform = "rotate(" + (-this.lastAngle).toFixed(2) + "deg)";
-    this.headingLabel.textContent = Math.round(normalizeHeading(this.lastAngle)) + "°";
-    this.modeLabel.textContent = trueNorth ? "TRUE N" : "MAG N";
-    this.permissionButton.hidden = true;
-  }
+    const useTrueNorth = this.declination !== null && this.settings.preferTrueNorth;
+    const heading = useTrueNorth ? applyDeclination(magneticHeading, this.declination) : magneticHeading;
+    this.lastAngle = this.lastAngle === null
+      ? heading
+      : this.lastAngle + shortestArc(this.lastAngle, heading) * this.settings.headingSmoothing;
 
-  setMode(mode) {
-    if (this.lastAngle !== null) {
-      this.modeLabel.textContent = mode;
-    }
+    this.rose.style.transform = "rotate(" + (-this.lastAngle).toFixed(2) + "deg)";
   }
 
   stop() {

@@ -12,7 +12,7 @@ const text = name => readFileSync(join(root, name), "utf8");
 const asset = name => readFileSync(join(root, "assets", name));
 const json = name => JSON.parse(text(name));
 const pages = ["index.html", "reference.html", "overlay-preview.html", "compile.html", "404.html"];
-const scripts = ["ar-app.js", "app-config.js", "target-compiler.js", "target-manifest.js", "north-compass.js", "responsive-scanner.js", "vendor/wmm2025.js", "vendor/wmm2025-coefficients.js", "vendor/wmm2025-utils.js"];
+const scripts = ["ar-app.js", "app-config.js", "target-compiler.js", "target-manifest.js", "north-compass.js", "vendor/wmm2025.js", "vendor/wmm2025-coefficients.js", "vendor/wmm2025-utils.js"];
 
 test("public frontend and administrator configuration exist", () => {
   for (const file of [...pages, ...scripts, "styles.css", "reference.css", "config/targets.json", "config/settings.json"]) {
@@ -137,7 +137,8 @@ test("astrolabe scanner is a transparent vector asset with a moving sextant arm"
   const app = text("ar-app.js");
   const css = text("styles.css");
   const svg = text("assets/astrolabe-scanner.svg");
-  assert.match(html, /src="\.\/assets\/astrolabe-scanner\.svg"/);
+  assert.match(html, /src="\.\/assets\/astrolabe-portrait\.svg"/);
+  assert.match(html, /srcset="\.\/assets\/astrolabe-landscape\.svg"/);
   assert.match(app, /this\.view\.scanner\.dataset\.style = settings\.scanner\.style/);
   assert.match(css, /\.scanner-hud\[data-style="astrolabe"\] \.scanner-radar/);
   assert.match(css, /\.scanner-hud\[data-style="sonar"\] \.scanner-instrument/);
@@ -162,11 +163,11 @@ test("camera capture provides gray flash, shutter sound and static Polaroid", ()
     assert.ok(html.includes('id="' + name + '"'));
   }
   assert.match(css, /@keyframes sonar-sweep/);
-  assert.match(css, /@keyframes gray-shutter-flash/);
-  assert.match(css, /@keyframes polaroid-develop/);
+  assert.match(css, /@keyframes gray-flash/);
+  assert.match(css, /@keyframes develop/);
   assert.match(app, /class MechanicalShutter/);
   assert.match(app, /this\.sound\.click\(\)/);
-  assert.match(app, /link\.download = "arthproj-"/);
+  assert.match(app, /this\.running = false;\s*this\.view\.update\("Developing photograph/);
 });
 
 test("image compiler uses MindAR's official export API", () => {
@@ -199,21 +200,54 @@ test("compass and theme settings are administrator-configured", () => {
   assert.ok(existsSync(join(root, "vendor/WMM2025-LICENSE.txt")));
 });
 
-test("scanner and Polaroid use measured orientation-responsive viewport geometry", () => {
+test("immersive experience has no modern UI controls or outward navigation", () => {
+  const html = text("index.html");
+  const css = text("styles.css");
+  const app = text("ar-app.js");
+  assert.doesNotMatch(html, /<button|<a\b|<header|<footer|<nav|IMAGE TRACKING|SCANNING|ACQUIRING TARGET|TRUE N|MAG N|compass-heading|compass-mode/);
+  assert.doesNotMatch(html, /open-in-browser|Roman reference|Green symbols/);
+  assert.doesNotMatch(app, /getElementById\("(?:retry-btn|scan-btn|stop-btn|capture-btn|save-btn|external-btn|polaroid-title)"/);
+  assert.doesNotMatch(css, /\.bottom-panel|\.topbar|\.actions-row/);
+  assert.match(html, /id="sr-status"/);
+  assert.match(app, /stage\.addEventListener\("pointerup"/);
+});
+
+test("portrait and landscape artwork use different compositions and preserve their proportions", () => {
+  const html = text("index.html");
+  const css = text("styles.css");
+  const portrait = asset("astrolabe-portrait.svg").toString("utf8");
+  const landscape = asset("astrolabe-landscape.svg").toString("utf8");
+  assert.match(html, /<picture class="instrument-picture">/);
+  assert.match(html, /<source media="\(orientation: landscape\)" srcset="\.\/assets\/astrolabe-landscape\.svg">/);
+  assert.match(html, /<img class="scanner-instrument" src="\.\/assets\/astrolabe-portrait\.svg"/);
+  assert.match(portrait, /viewBox="0 0 900 1520"/);
+  assert.match(landscape, /viewBox="0 0 1400 720"/);
+  assert.match(portrait, /portrait-wooden-rails/);
+  assert.match(landscape, /landscape-brigandine-wings/);
+  assert.match(css, /object-fit: contain/);
+  assert.match(css, /@media \(orientation: landscape\)/);
+});
+
+test("compass rose sits under a stationary glass lens and does not display a bearing", () => {
+  const html = text("index.html");
+  const compass = text("north-compass.js");
+  assert.match(html, /id="wind-rose"/);
+  assert.match(html, /class="glass-lens"/);
+  assert.match(html, /class="compass-hinge"/);
+  assert.match(html, /class="latch-clasp"/);
+  assert.doesNotMatch(html, /compass-heading|compass-mode|compass-enable|<output/);
+  assert.doesNotMatch(compass, /headingLabel|modeLabel|permissionButton|\.textContent/);
+  assert.match(compass, /this\.rose\.style\.transform/);
+});
+
+test("automatic camera and Polaroid gesture behavior remain usable without buttons", () => {
   const app = text("ar-app.js");
   const css = text("styles.css");
-  const html = text("index.html");
-  const scanner = text("responsive-scanner.js");
-  assert.match(app, /new ResponsiveScanner/);
-  assert.match(app, /responsiveScanner\.start\(\)/);
-  assert.match(app, /responsiveScanner\.stop\(\)/);
-  assert.match(scanner, /ResizeObserver/);
-  assert.match(scanner, /visualViewport/);
-  assert.match(scanner, /orientationchange/);
-  assert.match(css, /--instrument-width/);
-  assert.match(css, /--hud-top/);
-  assert.match(css, /--photo-max-height/);
-  assert.doesNotMatch(css, /min-height: 530px/);
-  assert.doesNotMatch(css, /max-height: 47dvh/);
-  assert.match(html, /ar-app\.js\?v=4\.1\.0/);
+  assert.match(app, /settings\.camera\.autoStart/);
+  assert.match(app, /void app\.start\(\)/);
+  assert.match(app, /app\.frozen \|\| \(!app\.starting && !app\.running\)/);
+  assert.match(app, /this\.stopTracking\(\);\s*this\.running = false;\s*this\.view\.update\("Developing photograph/);
+  assert.match(css, /--app-height/);
+  assert.doesNotMatch(css, /min-height: 530px|47dvh/);
+  assert.match(text("index.html"), /ar-app\.js\?v=5\.0\.0/);
 });
