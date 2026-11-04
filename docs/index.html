@@ -7,7 +7,7 @@
   <meta name="description" content="An enchanted Renaissance instrument revealing forgotten symbols.">
   <title>Speculum Arcana</title>
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=5.0.0">
+  <link rel="stylesheet" href="./styles.css?v=5.1.0">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
@@ -52,12 +52,15 @@
     <div id="polaroid" class="polaroid-frame" hidden aria-label="Stationary picture with revealed symbols">
       <div class="polaroid-paper">
         <canvas id="frozen-canvas" class="frozen-canvas" aria-label="Photograph with revealed symbols"></canvas>
-        <div class="polaroid-ornament" aria-hidden="true">✥</div>
+        <div class="polaroid-controls">
+          <span class="polaroid-ornament" aria-hidden="true">✥</span>
+          <button id="save-btn" class="polaroid-save" type="button" aria-label="Save photograph with revealed symbols">Save image</button>
+        </div>
       </div>
     </div>
     <div class="camera-vignette" aria-hidden="true"></div>
     <div id="sr-status" class="visually-hidden" role="status" aria-live="polite"></div>
   </main>
-  <script type="module" src="./ar-app.js?v=5.0.0"></script>
+  <script type="module" src="./ar-app.js?v=5.1.0"></script>
 </body>
 </html>

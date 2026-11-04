@@ -55,7 +55,7 @@ Edit [`docs/config/settings.json`](../docs/config/settings.json). All parameters
 | `capture.freezeDelayMs` | Time in milliseconds before capture (0–5000) |
 | `capture.shutterSound` | Attempts to play synthesized mechanical shutter sound |
 
-The public page contains no buttons, labels, or external links. Scanning starts automatically. Tapping the developed still photograph restarts scanning. If the camera is unavailable or auto-start is disabled, tapping the instrument retries camera access. When automatic capture is disabled, tapping an already-recognized picture freezes the frame.
+While scanning, the Renaissance astrolabe and glass compass remain visible continuously, including while recognition is locked. Once the still image is captured, both decorative pieces disappear; the Polaroid shows only the camera photograph and its per-target PNG symbols over the original writing. A single **Save image** button appears below the captured photograph and downloads that composited image as PNG, without the decorative scanner, compass, or Polaroid border. Tapping the still photograph anywhere outside the Save image button restarts scanning. If camera access fails, tapping the instrument retries. When automatic capture is disabled, tapping an already-recognized picture freezes the frame.
 
 The sound setting cannot override Android/Telegram browser autoplay restrictions. Some browsers require a user interaction before audio playback. Camera permission is always controlled by the browser, even when `camera.autoStart` is `true`.
 
@@ -81,10 +81,10 @@ Phone compass hardware can be affected by nearby metal and electromagnetic inter
 
 ## Full-screen immersive interface
 
-The public interface intentionally contains no text, buttons, links, or navigation to other pages. Its two independent image layouts are selected by the browser using `<picture>` and `(orientation: landscape)`. Both use transparent SVG artwork and `object-fit: contain` so the camera remains visible beneath the instrument. Android and Telegram browser chrome is external to the website and cannot be removed by site code.
+The public scanning interface intentionally contains no text, buttons, links, or navigation to other pages. The captured-image view alone displays a Save image button. Its two independent image layouts are selected by the browser using `<picture>` and `(orientation: landscape)`. Both use transparent SVG artwork and `object-fit: contain` so the camera remains visible beneath the instrument. Android and Telegram browser chrome is external to the website and cannot be removed by site code.
 
 The compass is visually enclosed in a riveted brass housing with a hinge, a latch, and a stationary simulated convex glass lens. Only the inner `wind-rose.svg` rotates. No direction text, degrees, or sensor status is displayed.
 
-On successful image recognition, the scanner disappears before the shutter effect and the static photograph appears. The still photograph stays on screen until touched; that touch restarts camera tracking without a visible button. Errors can be retried by touching the instrument; permission denials must still be changed in Android browser settings. Sound can be unavailable until a user interaction due to browser restrictions.
+On successful image recognition, the scanner is hidden for capture and the static photograph appears with the letters or symbols composited onto the original writing. The ornate scanner and compass stay concealed while this result is displayed. The Save image button saves the composited PNG; touching elsewhere restarts scanning. Errors can be retried by touching the instrument; permission denials must still be changed in Android browser settings. Sound can be unavailable until a user interaction due to browser restrictions.
 
 GitHub Pages is public static hosting. Removing links from the page does **not** make the project source, URL, or downloaded assets inaccessible to visitors. Access control would require a different hosting architecture.

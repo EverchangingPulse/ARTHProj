@@ -10,13 +10,15 @@ class StatusView {
     this.status = document.getElementById("sr-status");
     this.scanner = document.getElementById("scanner-hud");
     this.polaroid = document.getElementById("polaroid");
+    this.compass = document.getElementById("compass-panel");
     this.scannerEnabled = true;
   }
 
   update(message, state) {
     this.status.textContent = message;
     this.scanner.dataset.state = state;
-    this.scanner.hidden = !this.scannerEnabled || ["frozen", "developing", "stopped"].includes(state);
+    this.scanner.hidden = !this.scannerEnabled || ["frozen", "developing"].includes(state);
+    this.compass.classList.toggle("compass-concealed", ["frozen", "developing"].includes(state));
     this.polaroid.hidden = state !== "frozen";
   }
 }
@@ -115,12 +117,14 @@ class ArExperience {
     this.preview = new CameraPreview(document.getElementById("permission-preview"));
     this.snapshot = document.getElementById("frozen-canvas");
     this.flash = document.getElementById("capture-flash");
+    this.saveButton = document.getElementById("save-btn");
     this.sound = new MechanicalShutter();
     this.anchors = [];
     this.targets = [];
     this.running = false;
     this.starting = false;
     this.frozen = false;
+    this.capturedTargetName = null;
     this.generation = 0;
     this.freezeTimer = null;
     this.activeAnchor = null;
@@ -138,6 +142,7 @@ class ArExperience {
     this.starting = true;
     const generation = ++this.generation;
     this.frozen = false;
+    this.capturedTargetName = null;
     this.activeAnchor = null;
     this.flash.hidden = true;
     this.view.update("Requesting camera permission…", "loading");
@@ -269,10 +274,14 @@ class ArExperience {
     this.cancelFreeze();
     this.view.scanner.hidden = true;
     await nextFrame();
-    if (!this.running || this.activeAnchor !== anchor || !anchor.entity.object3D.visible) return;
+    if (!this.running || this.activeAnchor !== anchor || !anchor.entity.object3D.visible) {
+      if (this.running) this.view.update("Keep the inscription in view.", "searching");
+      return;
+    }
 
     try {
       this.composeSnapshot();
+      this.capturedTargetName = anchor.target.name;
       this.frozen = true;
       this.sound.click();
       this.stopTracking();
@@ -325,6 +334,29 @@ class ArExperience {
     const overlayCanvas = renderer.domElement;
     const overlayRect = overlayCanvas.getBoundingClientRect();
     context.drawImage(overlayCanvas, (overlayRect.left - stage.left) * ratio, (overlayRect.top - stage.top) * ratio, overlayRect.width * ratio, overlayRect.height * ratio);
+  }
+
+  savePicture() {
+    if (!this.frozen || this.saveButton.disabled) return;
+    this.saveButton.disabled = true;
+    try {
+      const image = this.snapshot.toDataURL("image/png");
+      const name = (this.capturedTargetName || "inscription")
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+      const link = document.createElement("a");
+      link.href = image;
+      link.download = "speculum-arcana-" + (name || "image") + ".png";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      this.view.status.textContent = "Photograph prepared for download.";
+    } catch {
+      this.view.status.textContent = "Unable to save this photograph in the current browser.";
+    } finally {
+      this.saveButton.disabled = false;
+    }
   }
 
   setOpacity(value) {
@@ -446,7 +478,13 @@ function initialize() {
     void compass.askPermission();
   });
 
-  stage.addEventListener("pointerup", () => {
+  document.getElementById("save-btn").addEventListener("click", event => {
+    event.stopPropagation();
+    app.savePicture();
+  });
+
+  stage.addEventListener("pointerup", event => {
+    if (event.target.closest("#save-btn")) return;
     if (app.frozen || (!app.starting && !app.running)) {
       void app.start();
       return;

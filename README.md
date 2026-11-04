@@ -115,3 +115,7 @@ The astrolabe theme now includes blue brigandine panels, aged walnut crossbars, 
 ## Immersive Renaissance presentation
 
 The site has no visible navigation, status panels, modern controls, or compass bearing text. Browser-native permission prompts still apply. The portrait and landscape instruments are `docs/assets/astrolabe-portrait.svg` and `docs/assets/astrolabe-landscape.svg`; the rose rotates beneath a fixed glass-and-brass hatch. Camera tracking and all recognition targets remain administrator-configured. A user taps the finished still photograph to scan again. The site is publicly accessible because GitHub Pages cannot hide its source or assets.
+
+## Capturing a reference photograph
+
+The Renaissance instrument and compass remain visible during active camera scanning. A stable image match captures the camera frame with the matched symbols PNG drawn over its inscription. The decorative instrument and compass are not part of the exported image. The stationary result presents the composite in a Polaroid-style frame with **Save image** (PNG); the downloaded file contains only the composited camera frame and symbols. Tap elsewhere on the photograph to begin scanning again.

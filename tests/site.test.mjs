@@ -204,9 +204,11 @@ test("immersive experience has no modern UI controls or outward navigation", () 
   const html = text("index.html");
   const css = text("styles.css");
   const app = text("ar-app.js");
-  assert.doesNotMatch(html, /<button(?:\s|>)|<a(?:\s|>)|<header(?:\s|>)|<footer(?:\s|>)|<nav(?:\s|>)|IMAGE TRACKING|SCANNING|ACQUIRING TARGET|TRUE N|MAG N|compass-heading|compass-mode/);
+  assert.doesNotMatch(html, /<a(?:\s|>)|<header(?:\s|>)|<footer(?:\s|>)|<nav(?:\s|>)|IMAGE TRACKING|SCANNING|ACQUIRING TARGET|TRUE N|MAG N|compass-heading|compass-mode/);
+  assert.equal((html.match(/<button\b/g) || []).length, 1);
+  assert.match(html, /<button id="save-btn"[^>]*>Save image<\/button>/);
   assert.doesNotMatch(html, /open-in-browser|Roman reference|Green symbols/);
-  assert.doesNotMatch(app, /getElementById\("(?:retry-btn|scan-btn|stop-btn|capture-btn|save-btn|external-btn|polaroid-title)"/);
+  assert.doesNotMatch(app, /getElementById\("(?:retry-btn|scan-btn|stop-btn|capture-btn|external-btn|polaroid-title)"/);
   assert.doesNotMatch(css, /\.bottom-panel|\.topbar|\.actions-row/);
   assert.match(html, /id="sr-status"/);
   assert.match(app, /stage\.addEventListener\("pointerup"/);
@@ -240,7 +242,7 @@ test("compass rose sits under a stationary glass lens and does not display a bea
   assert.match(compass, /this\.rose\.style\.transform/);
 });
 
-test("automatic camera and Polaroid gesture behavior remain usable without buttons", () => {
+test("automatic camera and Polaroid gestures remain usable with only the save button", () => {
   const app = text("ar-app.js");
   const css = text("styles.css");
   assert.match(app, /settings\.camera\.autoStart/);
@@ -249,5 +251,38 @@ test("automatic camera and Polaroid gesture behavior remain usable without butto
   assert.match(app, /this\.stopTracking\(\);\s*this\.running = false;\s*this\.view\.update\("Developing photograph/);
   assert.match(css, /--app-height/);
   assert.doesNotMatch(css, /min-height: 530px|47dvh/);
-  assert.match(text("index.html"), /ar-app\.js\?v=5\.0\.0/);
+  assert.match(text("index.html"), /ar-app\.js\?v=5\.1\.0/);
+});
+
+test("Renaissance ornament stays visible during live camera but disappears for captured photograph", () => {
+  const app = text("ar-app.js");
+  const css = text("styles.css");
+  assert.match(app, /this\.scanner\.hidden = !this\.scannerEnabled \|\| \["frozen", "developing"\]\.includes\(state\)/);
+  assert.match(app, /this\.compass\.classList\.toggle\("compass-concealed", \["frozen", "developing"\]\.includes\(state\)\)/);
+  assert.match(css, /\.compass-panel\.compass-concealed \{ visibility: hidden; \}/);
+  assert.match(app, /this\.view\.scanner\.hidden = true;\s*await nextFrame\(\)/);
+});
+
+test("captured image composites live camera first and aligned symbols second, never DOM decoration", () => {
+  const app = text("ar-app.js");
+  const source = app.slice(app.indexOf("  composeSnapshot() {"), app.indexOf("  savePicture() {"));
+  assert.match(source, /const video = system\.video/);
+  assert.match(source, /const overlayCanvas = renderer\.domElement/);
+  assert.match(source, /renderer\.render\(this\.scene\.object3D, this\.scene\.camera\)/);
+  assert.ok(source.indexOf("context.drawImage(video") < source.indexOf("context.drawImage(overlayCanvas"));
+  assert.doesNotMatch(source, /scanner-hud|compass-panel|scanner-instrument|wind-rose|polaroid-paper/);
+});
+
+test("only a frozen augmented image can be saved and its button cannot trigger a rescan", () => {
+  const html = text("index.html");
+  const app = text("ar-app.js");
+  const css = text("styles.css");
+  assert.match(html, /id="polaroid"[^>]+hidden/);
+  assert.ok(html.indexOf('id="save-btn"') > html.indexOf('id="polaroid"'));
+  assert.match(app, /if \(!this\.frozen \|\| this\.saveButton\.disabled\) return/);
+  assert.match(app, /this\.snapshot\.toDataURL\("image\/png"\)/);
+  assert.match(app, /link\.download = "speculum-arcana-"/);
+  assert.match(app, /event\.target\.closest\("#save-btn"\)/);
+  assert.match(app, /event\.stopPropagation\(\)/);
+  assert.match(css, /\.polaroid-save/);
 });
