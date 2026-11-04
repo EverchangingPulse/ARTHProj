@@ -12,7 +12,7 @@ const text = name => readFileSync(join(root, name), "utf8");
 const asset = name => readFileSync(join(root, "assets", name));
 const json = name => JSON.parse(text(name));
 const pages = ["index.html", "reference.html", "overlay-preview.html", "compile.html", "404.html"];
-const scripts = ["ar-app.js", "app-config.js", "target-compiler.js", "target-manifest.js", "north-compass.js", "vendor/wmm2025.js", "vendor/wmm2025-coefficients.js", "vendor/wmm2025-utils.js"];
+const scripts = ["ar-app.js", "app-config.js", "target-compiler.js", "target-manifest.js", "north-compass.js", "responsive-scanner.js", "vendor/wmm2025.js", "vendor/wmm2025-coefficients.js", "vendor/wmm2025-utils.js"];
 
 test("public frontend and administrator configuration exist", () => {
   for (const file of [...pages, ...scripts, "styles.css", "reference.css", "config/targets.json", "config/settings.json"]) {
@@ -197,4 +197,23 @@ test("compass and theme settings are administrator-configured", () => {
   assert.match(settings, /scanner\.style/);
   assert.doesNotMatch(text("index.html"), /id="compass-settings"/);
   assert.ok(existsSync(join(root, "vendor/WMM2025-LICENSE.txt")));
+});
+
+test("scanner and Polaroid use measured orientation-responsive viewport geometry", () => {
+  const app = text("ar-app.js");
+  const css = text("styles.css");
+  const html = text("index.html");
+  const scanner = text("responsive-scanner.js");
+  assert.match(app, /new ResponsiveScanner/);
+  assert.match(app, /responsiveScanner\.start\(\)/);
+  assert.match(app, /responsiveScanner\.stop\(\)/);
+  assert.match(scanner, /ResizeObserver/);
+  assert.match(scanner, /visualViewport/);
+  assert.match(scanner, /orientationchange/);
+  assert.match(css, /--instrument-width/);
+  assert.match(css, /--hud-top/);
+  assert.match(css, /--photo-max-height/);
+  assert.doesNotMatch(css, /min-height: 530px/);
+  assert.doesNotMatch(css, /max-height: 47dvh/);
+  assert.match(html, /ar-app\.js\?v=4\.1\.0/);
 });

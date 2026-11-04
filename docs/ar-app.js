@@ -1,5 +1,6 @@
 import { loadAppSettings } from "./app-config.js?v=4.0.0";
 import { NorthCompass } from "./north-compass.js?v=4.0.0";
+import { ResponsiveScanner } from "./responsive-scanner.js?v=4.1.0";
 import { loadTargets } from "./target-manifest.js?v=3.0.0";
 import { TargetCompiler } from "./target-compiler.js?v=3.0.0";
 
@@ -449,6 +450,11 @@ function initialize() {
   const app = new ArExperience();
   const telegram = new TelegramIntegration();
   const compass = new NorthCompass(document.getElementById("compass-panel"));
+  const responsiveScanner = new ResponsiveScanner(document.getElementById("camera-stage"), () => {
+    const system = app.scene.systems?.["mindar-image-system"];
+    if (app.running && system?.video && system?.controller) system._resize?.();
+  });
+  responsiveScanner.start();
 
   document.getElementById("retry-btn").addEventListener("click", () => void app.start());
   document.getElementById("scan-btn").addEventListener("click", () => void app.start());
@@ -463,6 +469,7 @@ function initialize() {
   window.addEventListener("pagehide", () => {
     app.stop();
     compass.stop();
+    responsiveScanner.stop();
     app.compiler.dispose();
   });
 
