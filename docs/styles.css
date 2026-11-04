@@ -70,6 +70,8 @@ a-scene canvas { display: block; }
   height: 100%;
 }
 .scanner-instrument {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -77,14 +79,14 @@ a-scene canvas { display: block; }
   object-position: center center;
   user-select: none;
   -webkit-user-drag: none;
-  filter: drop-shadow(0 0 8px rgba(0,0,0,.4));
 }
-.scanner-hud[data-state="found"] .scanner-instrument {
-  filter: drop-shadow(0 0 8px rgba(250,197,104,.4)) saturate(1.1);
+.landscape-instrument { display: none; }
+@media (orientation: landscape) {
+  .portrait-instrument { display: none; }
+  .landscape-instrument { display: block; }
 }
-.scanner-hud[data-state="error"] .scanner-instrument {
-  filter: grayscale(.72) brightness(.68);
-}
+.scanner-hud[data-state="found"] .scanner-instrument { filter: saturate(1.08) brightness(1.03); }
+.scanner-hud[data-state="error"] .scanner-instrument { filter: grayscale(.66) brightness(.68); }
 .scanner-radar {
   position: absolute;
   left: var(--dial-x, 50%);

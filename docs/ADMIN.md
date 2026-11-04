@@ -96,3 +96,7 @@ The portrait and landscape frames are complete chassis artwork, not independent 
 `docs/config/settings.json` has `display.fullscreen`, which controls fullscreen requests. When true, Telegram Mini Apps attempt `WebApp.requestFullscreen()` as the page opens. On ordinary browsers, the first tap attempts the browser Fullscreen API where supported. Browser chrome and permission prompts cannot be removed forcibly. Installed home-screen access can use `docs/manifest.webmanifest` with display mode `fullscreen`.
 
 The frame remains visible during camera scanning and disappears before the Polaroid result, which contains only the photo and matched letters/symbols. The sole visible button remains **Save image** on the result.
+
+## Installing the photorealistic HUD artwork
+
+Upload the two approved photo-based binaries to `docs/assets/hud-portrait.webp` and `docs/assets/hud-landscape.webp`. The files must have exactly those names. The central black opening and compass dial were cut into transparent layers before exporting the files; do not flatten or re-encode them as opaque JPEGs. The app automatically displays the photo-based version when each asset is available and falls back to the previous SVG on a missing image. Once the images are committed, no JSON settings need to change. The software already tracks each viewbox and aligns the rotating compass accordingly.

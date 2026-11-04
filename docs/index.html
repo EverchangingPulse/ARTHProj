@@ -7,7 +7,7 @@
   <meta name="description" content="An enchanted Renaissance instrument revealing forgotten symbols.">
   <title>Speculum Arcana</title>
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=6.0.0">
+  <link rel="stylesheet" href="./styles.css?v=7.0.0">
   <link rel="manifest" href="./manifest.webmanifest">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
@@ -37,10 +37,10 @@
     </aside>
 
     <div id="scanner-hud" class="scanner-hud" data-style="astrolabe" data-state="loading" aria-hidden="true">
-      <picture class="instrument-picture">
-        <source media="(orientation: landscape)" srcset="./assets/astrolabe-landscape.svg">
-        <img class="scanner-instrument" src="./assets/astrolabe-portrait.svg" alt="" draggable="false">
-      </picture>
+      <div class="instrument-picture">
+        <img id="portrait-instrument" class="scanner-instrument portrait-instrument" src="./assets/hud-portrait.webp" alt="" draggable="false">
+        <img id="landscape-instrument" class="scanner-instrument landscape-instrument" src="./assets/hud-landscape.webp" alt="" draggable="false">
+      </div>
       <div class="scanner-radar">
         <span class="scanner-ring"></span>
         <span class="scanner-ring"></span>
@@ -64,6 +64,6 @@
     <div class="camera-vignette" aria-hidden="true"></div>
     <div id="sr-status" class="visually-hidden" role="status" aria-live="polite"></div>
   </main>
-  <script type="module" src="./ar-app.js?v=6.0.0"></script>
+  <script type="module" src="./ar-app.js?v=7.0.0"></script>
 </body>
 </html>

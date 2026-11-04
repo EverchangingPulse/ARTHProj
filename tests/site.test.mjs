@@ -12,7 +12,7 @@ const text = name => readFileSync(join(root, name), "utf8");
 const asset = name => readFileSync(join(root, "assets", name));
 const json = name => JSON.parse(text(name));
 const pages = ["index.html", "reference.html", "overlay-preview.html", "compile.html", "404.html"];
-const scripts = ["ar-app.js", "app-config.js", "target-compiler.js", "target-manifest.js", "north-compass.js", "instrument-layout.js", "immersive-fullscreen.js", "vendor/wmm2025.js", "vendor/wmm2025-coefficients.js", "vendor/wmm2025-utils.js"];
+const scripts = ["ar-app.js", "app-config.js", "target-compiler.js", "target-manifest.js", "north-compass.js", "instrument-layout.js", "instrument-artwork.js", "immersive-fullscreen.js", "vendor/wmm2025.js", "vendor/wmm2025-coefficients.js", "vendor/wmm2025-utils.js"];
 
 test("public frontend and administrator configuration exist", () => {
   for (const file of [...pages, ...scripts, "styles.css", "reference.css", "config/targets.json", "config/settings.json"]) {
@@ -139,8 +139,10 @@ test("astrolabe scanner is a transparent vector asset with a moving sextant arm"
   const app = text("ar-app.js");
   const css = text("styles.css");
   const svg = text("assets/astrolabe-scanner.svg");
-  assert.match(html, /src="\.\/assets\/astrolabe-portrait\.svg"/);
-  assert.match(html, /srcset="\.\/assets\/astrolabe-landscape\.svg"/);
+  assert.match(html, /id="portrait-instrument"[^>]+src="\.\/assets\/hud-portrait\.webp"/);
+  assert.match(html, /id="landscape-instrument"[^>]+src="\.\/assets\/hud-landscape\.webp"/);
+  assert.match(text("instrument-artwork.js"), /astrolabe-portrait\.svg/);
+  assert.match(text("instrument-artwork.js"), /astrolabe-landscape\.svg/);
   assert.match(app, /this\.view\.scanner\.dataset\.style = settings\.scanner\.style/);
   assert.match(css, /\.scanner-hud\[data-style="astrolabe"\] \.scanner-radar/);
   assert.match(css, /\.scanner-hud\[data-style="sonar"\] \.instrument-picture/);
@@ -221,9 +223,11 @@ test("portrait and landscape artwork use different compositions and preserve the
   const css = text("styles.css");
   const portrait = asset("astrolabe-portrait.svg").toString("utf8");
   const landscape = asset("astrolabe-landscape.svg").toString("utf8");
-  assert.match(html, /<picture class="instrument-picture">/);
-  assert.match(html, /<source media="\(orientation: landscape\)" srcset="\.\/assets\/astrolabe-landscape\.svg">/);
-  assert.match(html, /<img class="scanner-instrument" src="\.\/assets\/astrolabe-portrait\.svg"/);
+  assert.match(html, /<div class="instrument-picture">/);
+  assert.match(html, /id="portrait-instrument"/);
+  assert.match(html, /id="landscape-instrument"/);
+  assert.match(css, /\.landscape-instrument \{ display: none; \}/);
+  assert.match(css, /\.landscape-instrument \{ display: block; \}/);
   assert.match(portrait, /viewBox="0 0 900 1900"/);
   assert.match(landscape, /viewBox="0 0 1900 900"/);
   assert.match(portrait, /mask="url\(#apertures\)"/);
@@ -257,7 +261,7 @@ test("automatic camera and Polaroid gestures remain usable with only the save bu
   assert.match(app, /this\.stopTracking\(\);\s*this\.running = false;\s*this\.view\.update\("Developing photograph/);
   assert.match(css, /--app-height/);
   assert.doesNotMatch(css, /min-height: 530px|47dvh/);
-  assert.match(text("index.html"), /ar-app\.js\?v=6\.0\.0/);
+  assert.match(text("index.html"), /ar-app\.js\?v=7\.0\.0/);
 });
 
 test("Renaissance ornament stays visible during live camera but disappears for captured photograph", () => {
@@ -328,4 +332,35 @@ test("compass is visually integrated below the brass plate", () => {
   assert.match(css, /z-index: 3/);
   assert.match(css, /\.scanner-hud \{/);
   assert.match(css, /z-index: 4/);
+});
+
+test("photographic HUD coordinates keep the compass behind the correct opening", async () => {
+  const { calculateInstrumentLayout, PHOTOGRAPHIC_INSTRUMENTS } = await import("../docs/instrument-layout.js");
+  for (const [mode, width, height] of [["portrait", 390, 844], ["landscape", 844, 390]]) {
+    const layout = calculateInstrumentLayout(width, height, "photographic");
+    assert.equal(layout.mode, mode);
+    assert.ok(layout.compass.x > 0 && layout.compass.x < width);
+    assert.ok(layout.compass.y > 0 && layout.compass.y < height);
+    assert.ok(layout.compass.diameter > 0);
+    assert.ok(PHOTOGRAPHIC_INSTRUMENTS[mode].width > 0);
+  }
+});
+
+test("photographic artwork falls back to known SVGs if media are unavailable", () => {
+  const source = text("instrument-artwork.js");
+  assert.match(source, /addEventListener\("error"/);
+  assert.match(source, /astrolabe-portrait\.svg/);
+  assert.match(source, /astrolabe-landscape\.svg/);
+  assert.match(source, /dataset\["frame" \+ orientation\]/);
+});
+
+test("photographic image must contain transparent camera and compass apertures when uploaded", () => {
+  const pictureFiles = ["hud-portrait.webp", "hud-landscape.webp"];
+  const available = pictureFiles.filter(name => existsSync(join(root, "assets", name)));
+  assert.ok(available.length === 0 || available.length === pictureFiles.length);
+  for (const filename of available) {
+    const data = asset(filename);
+    assert.equal(data.toString("ascii", 0, 4), "RIFF");
+    assert.equal(data.toString("ascii", 8, 12), "WEBP");
+  }
 });

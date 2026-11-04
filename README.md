@@ -123,3 +123,7 @@ The Renaissance instrument and compass remain visible during active camera scann
 ## Unified instrument chassis and fullscreen
 
 Both orientations use cohesive, full-viewport mechanical chassis illustrations with integrated walnut beams, blue brigandine, brass rings and rivets, gears, medallions and transparent camera apertures. The rotating compass rose is positioned under the instrument ring using `docs/instrument-layout.js` rather than floating independently. `docs/config/settings.json` controls `display.fullscreen`: Telegram requests fullscreen on launch, whereas browsers that require user activation attempt fullscreen on first touch. The `docs/manifest.webmanifest` enables fullscreen display when the site is installed as a supported standalone app. Native browser controls remain outside the website's authority.
+
+## Photorealistic photographic HUD assets
+
+The app now supports photographic HUD artwork in two independent files: `docs/assets/hud-portrait.webp` and `docs/assets/hud-landscape.webp`. These are full-frame transparent WebP images derived from the approved Renaissance apparatus photograph. They contain transparent cutouts for the live camera and a separate compass rose. `docs/instrument-artwork.js` detects media errors and falls back to the prior SVGs if the files have not yet been uploaded. `docs/instrument-layout.js` aligns the compass with the corresponding cutouts using each asset's native coordinate system. Once both binary images are uploaded to `docs/assets/`, GitHub Pages deploys them automatically without another code edit.

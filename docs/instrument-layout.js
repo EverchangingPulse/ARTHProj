@@ -1,4 +1,4 @@
-export const INSTRUMENTS = Object.freeze({
+export const ILLUSTRATED_INSTRUMENTS = Object.freeze({
   portrait: Object.freeze({
     width: 900,
     height: 1900,
@@ -13,10 +13,28 @@ export const INSTRUMENTS = Object.freeze({
   })
 });
 
-export function calculateInstrumentLayout(width, height) {
+export const PHOTOGRAPHIC_INSTRUMENTS = Object.freeze({
+  portrait: Object.freeze({
+    width: 941,
+    height: 1672,
+    dial: Object.freeze({ x: 466, y: 715, radius: 289 }),
+    compass: Object.freeze({ x: 207, y: 1238, radius: 88 })
+  }),
+  landscape: Object.freeze({
+    width: 1200,
+    height: 650,
+    dial: Object.freeze({ x: 602, y: 330, radius: 245 }),
+    compass: Object.freeze({ x: 141, y: 234, radius: 57 })
+  })
+});
+
+export const INSTRUMENTS = ILLUSTRATED_INSTRUMENTS;
+
+export function calculateInstrumentLayout(width, height, artwork = "illustrated") {
   if (!(width > 0) || !(height > 0)) throw new Error("Invalid viewport dimensions.");
   const mode = width > height ? "landscape" : "portrait";
-  const spec = INSTRUMENTS[mode];
+  const selected = artwork === "photographic" ? PHOTOGRAPHIC_INSTRUMENTS : ILLUSTRATED_INSTRUMENTS;
+  const spec = selected[mode];
   const scale = Math.max(width / spec.width, height / spec.height);
   const offsetX = (width - spec.width * scale) / 2;
   const offsetY = (height - spec.height * scale) / 2;
@@ -70,9 +88,11 @@ export class InstrumentLayout {
       }
       const { width, height } = this.stage.getBoundingClientRect();
       if (!width || !height) return;
-      const signature = width.toFixed(1) + "x" + height.toFixed(1);
+      const orientation = width > height ? "landscape" : "portrait";
+      const artwork = this.stage.dataset["frame" + orientation] || "illustrated";
+      const signature = width.toFixed(1) + "x" + height.toFixed(1) + ":" + artwork;
       if (signature === this.last) return;
-      const layout = calculateInstrumentLayout(width, height);
+      const layout = calculateInstrumentLayout(width, height, artwork);
       this.stage.dataset.instrumentMode = layout.mode;
       this.stage.style.setProperty("--compass-x", layout.compass.x.toFixed(2) + "px");
       this.stage.style.setProperty("--compass-y", layout.compass.y.toFixed(2) + "px");
