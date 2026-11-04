@@ -2,9 +2,12 @@ export class ImmersiveFullscreen {
   constructor(stage, webApp = window.Telegram?.WebApp) {
     this.stage = stage;
     this.webApp = webApp;
+    this.enabled = false;
   }
 
-  onLaunch() {
+  onLaunch(enabled = true) {
+    this.enabled = enabled;
+    if (!enabled) return false;
     const app = this.webApp;
     try {
       app?.ready?.();
@@ -20,6 +23,7 @@ export class ImmersiveFullscreen {
   }
 
   requestFromGesture() {
+    if (!this.enabled) return;
     const app = this.webApp;
     if (app?.isFullscreen) return;
     if (app?.requestFullscreen && app?.initData) {
