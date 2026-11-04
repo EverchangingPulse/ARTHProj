@@ -15,7 +15,7 @@ export class InstrumentArtwork {
         this.stage.dataset["frame" + orientation] = isPhotographic ? "photographic" : "illustrated";
         this.onChange();
       });
-      image.addEventListener("error", () => {
+      const fallback = () => {
         if (image.dataset.fallback) return;
         image.dataset.fallback = "true";
         this.stage.dataset["frame" + orientation] = "illustrated";
@@ -23,9 +23,14 @@ export class InstrumentArtwork {
           ? "./assets/astrolabe-portrait.svg"
           : "./assets/astrolabe-landscape.svg";
         this.onChange();
-      });
-      if (image.complete && image.naturalWidth) {
-        this.stage.dataset["frame" + orientation] = "photographic";
+      };
+      image.addEventListener("error", fallback);
+      if (image.complete) {
+        if (image.naturalWidth) {
+          this.stage.dataset["frame" + orientation] = "photographic";
+        } else {
+          fallback();
+        }
       }
     }
     this.onChange();
