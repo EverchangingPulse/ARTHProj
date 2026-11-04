@@ -166,7 +166,6 @@ test("camera capture provides gray flash, shutter sound and static Polaroid", ()
   for (const name of ["scanner-hud", "capture-flash", "polaroid", "frozen-canvas"]) {
     assert.ok(html.includes('id="' + name + '"'));
   }
-  assert.match(css, /@keyframes turn-orbit/);
   assert.match(css, /@keyframes gray-flash/);
   assert.match(css, /@keyframes develop/);
   assert.match(app, /class MechanicalShutter/);

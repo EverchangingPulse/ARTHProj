@@ -220,7 +220,6 @@ a-scene canvas { display: block; }
   .polaroid-save { min-height: 29px; font-size: 12px; padding: 3px 11px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .scanner-sweep { animation-duration: 18s; }
   .polaroid-frame { animation: none; }
   .capture-flash { animation-duration: 220ms; }
 }
