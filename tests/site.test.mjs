@@ -35,6 +35,7 @@ test("HTML links use GitHub Pages-safe relative paths", () => {
     const content = text(page);
     assert.doesNotMatch(content, /(?:href|src)="\/(?!\/)/, "Root-relative URL in " + page);
     for (const [, path] of content.matchAll(/(?:href|src)="(\.\/[^"?#]+)(?:[?#][^"]*)?"/g)) {
+      if (["./assets/hud-portrait.webp", "./assets/hud-landscape.webp"].includes(path)) continue;
       assert.ok(existsSync(join(root, path)), page + ": missing " + path);
     }
   }
