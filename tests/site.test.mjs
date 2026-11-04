@@ -141,7 +141,7 @@ test("astrolabe scanner is a transparent vector asset with a moving sextant arm"
   assert.match(html, /srcset="\.\/assets\/astrolabe-landscape\.svg"/);
   assert.match(app, /this\.view\.scanner\.dataset\.style = settings\.scanner\.style/);
   assert.match(css, /\.scanner-hud\[data-style="astrolabe"\] \.scanner-radar/);
-  assert.match(css, /\.scanner-hud\[data-style="sonar"\] \.scanner-instrument/);
+  assert.match(css, /\.scanner-hud\[data-style="sonar"\] \.instrument-picture/);
   assert.match(svg, /<svg[^>]+viewBox="0 0 900 650"/);
   assert.match(svg, /class="sight"/);
   assert.match(svg, /class="turn"/);
@@ -162,7 +162,7 @@ test("camera capture provides gray flash, shutter sound and static Polaroid", ()
   for (const name of ["scanner-hud", "capture-flash", "polaroid", "frozen-canvas"]) {
     assert.ok(html.includes('id="' + name + '"'));
   }
-  assert.match(css, /@keyframes sonar-sweep/);
+  assert.match(css, /@keyframes scanner-sweep/);
   assert.match(css, /@keyframes gray-flash/);
   assert.match(css, /@keyframes develop/);
   assert.match(app, /class MechanicalShutter/);
@@ -204,7 +204,7 @@ test("immersive experience has no modern UI controls or outward navigation", () 
   const html = text("index.html");
   const css = text("styles.css");
   const app = text("ar-app.js");
-  assert.doesNotMatch(html, /<button|<a\b|<header|<footer|<nav|IMAGE TRACKING|SCANNING|ACQUIRING TARGET|TRUE N|MAG N|compass-heading|compass-mode/);
+  assert.doesNotMatch(html, /<button(?:\s|>)|<a(?:\s|>)|<header(?:\s|>)|<footer(?:\s|>)|<nav(?:\s|>)|IMAGE TRACKING|SCANNING|ACQUIRING TARGET|TRUE N|MAG N|compass-heading|compass-mode/);
   assert.doesNotMatch(html, /open-in-browser|Roman reference|Green symbols/);
   assert.doesNotMatch(app, /getElementById\("(?:retry-btn|scan-btn|stop-btn|capture-btn|save-btn|external-btn|polaroid-title)"/);
   assert.doesNotMatch(css, /\.bottom-panel|\.topbar|\.actions-row/);

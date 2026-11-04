@@ -22,3 +22,6 @@ jobs:
           node-version: "22"
       - name: Validate assets and relative paths
         run: node --test tests/*.test.mjs
+      - name: Parse portrait and landscape vector artwork
+        run: python3 -c "import xml.etree.ElementTree as ET; [ET.parse(path) for path in ['docs/assets/astrolabe-portrait.svg', 'docs/assets/astrolabe-landscape.svg', 'docs/assets/wind-rose.svg']]"
+
