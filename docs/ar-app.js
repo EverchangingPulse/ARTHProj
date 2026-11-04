@@ -2,6 +2,8 @@ import { loadAppSettings } from "./app-config.js?v=4.0.0";
 import { NorthCompass } from "./north-compass.js?v=4.0.0";
 import { loadTargets } from "./target-manifest.js?v=3.0.0";
 import { TargetCompiler } from "./target-compiler.js?v=3.0.0";
+import { InstrumentLayout } from "./instrument-layout.js?v=6.0.0";
+import { ImmersiveFullscreen } from "./immersive-fullscreen.js?v=6.0.0";
 
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
 
@@ -409,73 +411,24 @@ class ArExperience {
   }
 }
 
-function installViewportSync(app) {
-  const stage = document.getElementById("camera-stage");
-  let frame = null;
-  const pending = new Set();
-
-  const sync = () => {
-    const height = window.visualViewport?.height || window.innerHeight;
-    if (Number.isFinite(height) && height > 0) {
-      document.documentElement.style.setProperty("--app-height", Math.round(height) + "px");
-    }
-
-    const system = app.scene.systems?.["mindar-image-system"];
-    if (app.running && system?.video && system?.controller) {
-      system._resize?.();
-    }
-  };
-
-  const schedule = () => {
-    if (frame !== null) return;
-    frame = requestAnimationFrame(() => {
-      frame = null;
-      sync();
-    });
-  };
-
-  const onRotation = () => {
-    schedule();
-    for (const delay of [180, 450]) {
-      const timeout = setTimeout(() => {
-        pending.delete(timeout);
-        schedule();
-      }, delay);
-      pending.add(timeout);
-    }
-  };
-
-  const observer = typeof ResizeObserver !== "undefined" ? new ResizeObserver(schedule) : null;
-  observer?.observe(stage);
-  window.addEventListener("resize", schedule);
-  window.addEventListener("orientationchange", onRotation);
-  window.visualViewport?.addEventListener("resize", schedule);
-  window.screen.orientation?.addEventListener?.("change", onRotation);
-  schedule();
-
-  return () => {
-    observer?.disconnect();
-    window.removeEventListener("resize", schedule);
-    window.removeEventListener("orientationchange", onRotation);
-    window.visualViewport?.removeEventListener("resize", schedule);
-    window.screen.orientation?.removeEventListener?.("change", onRotation);
-    for (const timeout of pending) clearTimeout(timeout);
-    if (frame !== null) cancelAnimationFrame(frame);
-  };
-}
-
 function initialize() {
   const app = new ArExperience();
   const compass = new NorthCompass(document.getElementById("compass-panel"));
-  const webApp = window.Telegram?.WebApp;
-  webApp?.ready();
-  webApp?.expand();
-  const disposeViewport = installViewportSync(app);
   const stage = document.getElementById("camera-stage");
+  const fullscreen = new ImmersiveFullscreen(stage);
+  const layout = new InstrumentLayout(stage, {
+    onResize: () => {
+      const system = app.scene.systems?.["mindar-image-system"];
+      if (app.running && system?.video && system?.controller) system._resize?.();
+    }
+  });
+  layout.start();
 
-  stage.addEventListener("pointerdown", () => {
+  stage.addEventListener("pointerdown", event => {
+    if (event.target.closest("#save-btn")) return;
     app.sound.unlock();
     void compass.askPermission();
+    fullscreen.requestFromGesture();
   });
 
   document.getElementById("save-btn").addEventListener("click", event => {
@@ -497,11 +450,12 @@ function initialize() {
   window.addEventListener("pagehide", () => {
     app.stop();
     compass.stop();
-    disposeViewport();
+    layout.stop();
     app.compiler.dispose();
   });
 
   void loadAppSettings().then(settings => {
+    fullscreen.onLaunch(settings.display.fullscreen);
     compass.start(settings.compass);
     if (settings.camera.autoStart) {
       return app.start(settings).finally(() => compass.requestLocation());

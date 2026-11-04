@@ -119,3 +119,7 @@ The site has no visible navigation, status panels, modern controls, or compass b
 ## Capturing a reference photograph
 
 The Renaissance instrument and compass remain visible during active camera scanning. A stable image match captures the camera frame with the matched symbols PNG drawn over its inscription. The decorative instrument and compass are not part of the exported image. The stationary result presents the composite in a Polaroid-style frame with **Save image** (PNG); the downloaded file contains only the composited camera frame and symbols. Tap elsewhere on the photograph to begin scanning again.
+
+## Unified instrument chassis and fullscreen
+
+Both orientations use cohesive, full-viewport mechanical chassis illustrations with integrated walnut beams, blue brigandine, brass rings and rivets, gears, medallions and transparent camera apertures. The rotating compass rose is positioned under the instrument ring using `docs/instrument-layout.js` rather than floating independently. `docs/config/settings.json` controls `display.fullscreen`: Telegram requests fullscreen on launch, whereas browsers that require user activation attempt fullscreen on first touch. The `docs/manifest.webmanifest` enables fullscreen display when the site is installed as a supported standalone app. Native browser controls remain outside the website's authority.

@@ -1,8 +1,8 @@
 :root {
   color-scheme: dark;
-  --walnut: #271811;
-  --brass: #cea36a;
-  --blue: #1b355b;
+  --bg: #15100e;
+  --brass: #cca16a;
+  --blue: #213b5b;
 }
 * { box-sizing: border-box; }
 html, body {
@@ -11,16 +11,28 @@ html, body {
   margin: 0;
   overflow: hidden;
   overscroll-behavior: none;
-  background: #100e10;
+  background: var(--bg);
 }
-body { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+body {
+  position: fixed;
+  inset: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
 .camera-stage {
-  position: relative;
+  position: fixed;
+  inset: 0;
   width: 100%;
   height: var(--app-height, 100dvh);
   overflow: hidden;
   isolation: isolate;
-  background: radial-gradient(ellipse at 50% 50%, #243046, #101019 70%, #100d0b);
+  background:
+    linear-gradient(90deg, #1a1310, #1d3151 24%, #101928 50%, #1d3151 76%, #1a1310);
+}
+.camera-stage:fullscreen {
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
 }
 a-scene {
   position: absolute !important;
@@ -35,278 +47,207 @@ a-scene canvas { display: block; }
   inset: 0;
   width: 100%;
   height: 100%;
-  z-index: 0;
   object-fit: cover;
+  z-index: 0;
 }
 #permission-preview[hidden],
 #scanner-hud[hidden],
 #compass-panel[hidden],
 #capture-flash[hidden],
 #polaroid[hidden] { display: none !important; }
-.camera-vignette {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background: radial-gradient(ellipse at 50% 50%, transparent 45%, rgba(15, 9, 9, .47) 100%);
-}
 .scanner-hud {
   position: absolute;
   inset: 0;
-  z-index: 3;
-  pointer-events: none;
+  z-index: 4;
   overflow: hidden;
-  display: grid;
-  place-items: center;
+  pointer-events: none;
 }
 .instrument-picture {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
-  overflow: hidden;
 }
 .scanner-instrument {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center center;
-  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, .52)) drop-shadow(0 0 15px rgba(184, 132, 66, .12));
   user-select: none;
   -webkit-user-drag: none;
+  filter: drop-shadow(0 0 8px rgba(0,0,0,.4));
 }
 .scanner-hud[data-state="found"] .scanner-instrument {
-  filter: drop-shadow(0 0 18px rgba(247, 194, 97, .55));
+  filter: drop-shadow(0 0 8px rgba(250,197,104,.4)) saturate(1.1);
 }
 .scanner-hud[data-state="error"] .scanner-instrument {
-  filter: grayscale(.7) drop-shadow(0 0 9px rgba(100, 30, 30, .6));
+  filter: grayscale(.72) brightness(.68);
 }
-.scanner-hud[data-style="astrolabe"] .scanner-radar { display: none; }
-.scanner-hud[data-style="sonar"] .instrument-picture { display: none; }
 .scanner-radar {
-  position: relative;
-  width: min(76vw, 76dvh, 430px);
-  aspect-ratio: 1;
+  position: absolute;
+  left: var(--dial-x, 50%);
+  top: var(--dial-y, 50%);
+  width: var(--dial-size, 56vmin);
+  height: var(--dial-size, 56vmin);
+  transform: translate(-50%,-50%);
   border-radius: 50%;
-  border: 12px ridge #ae7d40;
-  box-shadow: inset 0 0 25px #201812, 0 0 20px #0d0b0d;
-  background: radial-gradient(circle, transparent 30%, rgba(192, 142, 77, .12));
+  overflow: hidden;
+  opacity: .65;
+  pointer-events: none;
+  background: radial-gradient(circle, transparent 58%, rgba(246,189,100,.075) 98%);
 }
 .scanner-ring {
   position: absolute;
-  border: 1px solid rgba(246, 205, 129, .35);
+  border: 1px solid rgba(248,202,130,.24);
+  inset: 17%;
   border-radius: 50%;
-  inset: 15%;
 }
-.scanner-ring:nth-child(2) { inset: 30%; }
-.scanner-ring:nth-child(3) { inset: 45%; }
+.scanner-ring:nth-child(2) { inset: 34%; }
+.scanner-ring:nth-child(3) { inset: 48%; }
 .scanner-sweep {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  background: conic-gradient(from -40deg, transparent 0deg, transparent 300deg, rgba(248, 184, 104, .25) 355deg, #ffd58d 360deg);
-  animation: scanner-sweep 4s linear infinite;
+  background: conic-gradient(from 15deg, transparent 0deg 290deg, rgba(247,192,108,.015) 300deg, rgba(246,186,84,.12) 345deg, rgba(255,235,167,.67) 359deg, transparent 360deg);
+  animation: turn-orbit 9s linear infinite;
 }
-@keyframes scanner-sweep { to { transform: rotate(360deg); } }
-
-.compass-panel.compass-concealed { visibility: hidden; }
-.compass-panel {
+@keyframes turn-orbit { to { transform: rotate(360deg); } }
+.scanner-hud[data-state="found"] .scanner-sweep {
+  animation-duration: 18s;
+  opacity: .4;
+}
+.scanner-hud[data-style="astrolabe"] .scanner-radar { display: block; }
+.scanner-hud[data-style="sonar"] .instrument-picture { display: none; }
+.scanner-hud[data-style="sonar"] .scanner-radar {
+  box-shadow: inset 0 0 13px rgba(211,176,102,.5), 0 0 12px #a27d4c;
+  border: 3px solid #be9861;
+}
+.embedded-compass {
   position: absolute;
-  top: max(14px, env(safe-area-inset-top));
-  right: max(12px, env(safe-area-inset-right));
-  z-index: 6;
-  width: clamp(74px, 19vw, 118px);
-  aspect-ratio: 1;
-  padding: 8px;
-  border: 5px ridge #bd8b50;
+  z-index: 3;
+  left: var(--compass-x, 22%);
+  top: var(--compass-y, 83%);
+  width: var(--compass-size, 16vw);
+  height: var(--compass-size, 16vw);
+  transform: translate(-50%,-50%);
   border-radius: 50%;
-  background: radial-gradient(circle, #5c3b25, #27170f 77%, #100d0c);
-  box-shadow: 0 8px 20px rgba(0,0,0,.65), inset 0 0 4px #f5c88a, 0 0 0 3px #3b261b;
-  pointer-events: none;
-}
-.compass-casing {
-  position: relative;
-  width: 100%;
-  height: 100%;
+  padding: 0;
   overflow: hidden;
-  border-radius: 50%;
-  border: 2px solid #c69b62;
-  box-shadow: inset 0 0 14px #000, 0 0 0 1px #261917;
-  background: radial-gradient(circle at 45% 40%, #1c385c, #09121e);
+  pointer-events: none;
+  background: radial-gradient(circle, #264871 15%, #09111e 100%);
+  box-shadow: inset 0 0 13px rgba(0,0,0,.8);
 }
-.compass-casing img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  will-change: transform;
-}
+.embedded-compass.compass-concealed { visibility: hidden; }
+.compass-casing { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: 50%; }
+.compass-casing img { display: block; width: 100%; height: 100%; object-fit: cover; will-change: transform; }
+.compass-hinge, .latch-clasp { display: none; }
 .glass-lens {
   position: absolute;
   inset: 0;
   z-index: 2;
   border-radius: 50%;
-  border: 1px solid rgba(255, 243, 212, .35);
-  box-shadow: inset -7px -8px 18px rgba(0,0,0,.48), inset 4px 3px 15px rgba(240,249,255,.14);
   background:
-    radial-gradient(ellipse at 28% 19%, rgba(249,250,255,.39), transparent 28%),
-    linear-gradient(126deg, rgba(255,255,255,.19) 0 9%, transparent 17% 64%, rgba(236,244,250,.1) 73%, transparent 83%);
+    radial-gradient(ellipse at 24% 19%, rgba(255,255,255,.42), transparent 33%),
+    linear-gradient(123deg, rgba(250,244,222,.22), transparent 24% 64%, rgba(230,248,255,.07) 83%, transparent);
+  box-shadow: inset -9px -9px 18px rgba(2,5,9,.54), inset 4px 5px 12px rgba(250,250,250,.1);
+}
+.lens-pointer { display: none; }
+.lens-pivot { display: none; }
+.camera-vignette {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
   pointer-events: none;
-}
-.lens-pointer {
-  position: absolute;
-  left: 50%;
-  top: -1px;
-  z-index: 3;
-  width: 13%;
-  height: 17%;
-  transform: translateX(-50%);
-  background: #efe2bc;
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  filter: drop-shadow(0 1px 2px #130e0a);
-}
-.lens-pivot {
-  position: absolute;
-  width: 12%;
-  height: 12%;
-  top: 50%;
-  left: 50%;
-  z-index: 3;
-  transform: translate(-50%, -50%);
-  background: radial-gradient(circle, #fbe4b3 10%, #a77b40 50%, #392219 90%);
-  border-radius: 50%;
-  border: 1px solid #dec08a;
-}
-.compass-hinge {
-  position: absolute;
-  width: 19%;
-  height: 30%;
-  top: 33%;
-  left: -12%;
-  border: 4px ridge #a77746;
-  border-radius: 4px;
-  background: linear-gradient(#231712, #79502d, #251915);
-  box-shadow: 1px 1px 4px #090807;
-}
-.latch-clasp {
-  position: absolute;
-  right: -10%;
-  top: 38%;
-  width: 19%;
-  height: 25%;
-  border: 3px ridge #c49957;
-  border-radius: 3px;
-  background: linear-gradient(90deg, #221512, #b88547, #33221a);
+  background: radial-gradient(ellipse at center, transparent 54%, rgba(19,8,8,.14) 100%);
 }
 .capture-flash {
   position: absolute;
-  z-index: 11;
+  z-index: 10;
   inset: 0;
-  background: #afb0ac;
+  background: #bcbcb6;
   pointer-events: none;
-  animation: gray-flash 480ms ease-out both;
+  animation: gray-flash 500ms ease-out both;
 }
 @keyframes gray-flash {
   0% { opacity: 0; }
-  12% { opacity: .98; }
-  38% { opacity: .88; }
+  13% { opacity: .98; }
+  34% { opacity: .85; }
   100% { opacity: 0; }
 }
 .polaroid-frame {
   position: absolute;
-  inset: 0;
   z-index: 8;
+  inset: 0;
   display: grid;
   place-items: center;
-  padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
-  background: radial-gradient(ellipse at center, rgba(17,18,22,.63), rgba(10,7,8,.89));
-  animation: develop 850ms cubic-bezier(.15,.8,.3,1) both;
+  padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+  background: radial-gradient(ellipse at center, rgba(16,18,22,.75), rgba(9,7,8,.94));
+  animation: develop 850ms cubic-bezier(.14,.82,.3,1) both;
 }
 .polaroid-paper {
   display: flex;
   flex-direction: column;
-  width: min(82vw, 590px);
-  max-height: 92%;
+  width: min(84vw, 630px);
+  max-height: 94%;
   padding: 12px 12px 3px;
-  border: 1px solid #fbf1d9;
-  background: #ece4d3;
-  box-shadow: 0 13px 60px rgba(0,0,0,.67);
-  transform: rotate(-2deg);
+  border: 1px solid #f9e8c6;
+  background: #ede2ce;
+  box-shadow: 0 16px 56px rgba(0,0,0,.76);
+  transform: rotate(-1.6deg);
 }
 .polaroid-paper canvas {
   display: block;
   width: 100%;
   height: auto;
   min-height: 0;
-  max-height: calc(var(--app-height, 100dvh) * .76);
+  max-height: calc(var(--app-height, 100dvh) * .75);
   object-fit: contain;
-  background: #201c1b;
+  background: #1e1c1b;
 }
 .polaroid-controls {
-  flex: 0 0 auto;
-  min-height: 48px;
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
-  padding: 6px 7px 3px;
+  min-height: 45px;
+  padding: 5px 7px 2px;
+}
+.polaroid-ornament {
+  font: 24px Georgia,serif;
+  color: #a77d4b;
+  line-height: 1;
 }
 .polaroid-save {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
   cursor: pointer;
-  min-height: 38px;
-  padding: 6px 19px;
-  border: 2px ridge #b78a4b;
+  min-height: 35px;
+  padding: 6px 18px;
+  touch-action: manipulation;
+  border: 2px ridge #aa7943;
   border-radius: 5px;
-  color: #fce9c0;
-  background: linear-gradient(135deg, #6c4729, #37261d 58%, #754a28);
-  box-shadow: inset 0 1px rgba(255,235,176,.45), 0 2px 5px rgba(0,0,0,.28);
-  font: 600 14px Georgia, serif;
-  letter-spacing: .035em;
+  color: #f8e3bd;
+  background: linear-gradient(#78512e, #30221a);
+  box-shadow: inset 0 1px rgba(255,243,202,.4), 0 2px 5px rgba(0,0,0,.3);
+  font: 600 14px Georgia,serif;
 }
 .polaroid-save:disabled { opacity: .55; }
-.polaroid-save:focus-visible { outline: 3px solid #9e6426; outline-offset: 3px; }
-.polaroid-ornament {
-  flex: 0 0 auto;
-  height: 41px;
-  display: grid;
-  place-items: center;
-  font: 23px Georgia, serif;
-  color: #96754f;
-}
+.polaroid-save:focus-visible { outline: 3px solid #bb8a45; outline-offset: 3px; }
 @keyframes develop {
-  0% { opacity: .2; transform: translateY(30px) scale(.91); filter: grayscale(1); }
-  60% { opacity: 1; filter: grayscale(.55); }
+  0% { opacity: .2; transform: translateY(24px) scale(.92); filter: grayscale(1); }
+  62% { opacity: 1; filter: grayscale(.6); }
   100% { opacity: 1; transform: translateY(0) scale(1); filter: grayscale(0); }
 }
-.visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0,0,0,0);
-  white-space: nowrap;
-}
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; }
 @media (orientation: landscape) {
-  .compass-panel {
-    top: max(9px, env(safe-area-inset-top));
-    right: max(9px, env(safe-area-inset-right));
-    width: clamp(62px, 11vh, 94px);
-    border-width: 3px;
-    padding: 5px;
-  }
-  .polaroid-paper {
-    width: min(52vw, 690px);
-    padding: 8px 8px 1px;
-  }
-  .polaroid-paper canvas { max-height: calc(var(--app-height, 100dvh) * .7); }
-  .polaroid-controls { min-height: 34px; padding: 3px 3px 1px; }
-  .polaroid-save { min-height: 29px; padding: 3px 12px; font-size: 11px; }
-  .polaroid-ornament { height: 24px; font-size: 16px; }
+  .polaroid-paper { width: min(55vw, 700px); padding: 8px 8px 2px; }
+  .polaroid-paper canvas { max-height: calc(var(--app-height, 100dvh) * .70); }
+  .polaroid-controls { min-height: 30px; padding: 3px 3px 1px; }
+  .polaroid-ornament { font-size: 17px; }
+  .polaroid-save { min-height: 29px; font-size: 12px; padding: 3px 11px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .scanner-sweep { animation-duration: 12s; }
+  .scanner-sweep { animation-duration: 18s; }
   .polaroid-frame { animation: none; }
-  .capture-flash { animation-duration: 250ms; }
+  .capture-flash { animation-duration: 220ms; }
 }

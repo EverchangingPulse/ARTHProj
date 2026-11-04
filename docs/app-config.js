@@ -30,6 +30,9 @@ export function parseAppSettings(config) {
     camera: {
       autoStart: requireBoolean(config.camera?.autoStart, "camera.autoStart")
     },
+    display: {
+      fullscreen: requireBoolean(config.display?.fullscreen, "display.fullscreen")
+    },
     tracking: {
       maxTrack: requireInteger(config.tracking?.maxTrack, 1, 3, "tracking.maxTrack")
     },

@@ -88,3 +88,11 @@ The compass is visually enclosed in a riveted brass housing with a hinge, a latc
 On successful image recognition, the scanner is hidden for capture and the static photograph appears with the letters or symbols composited onto the original writing. The ornate scanner and compass stay concealed while this result is displayed. The Save image button saves the composited PNG; touching elsewhere restarts scanning. Errors can be retried by touching the instrument; permission denials must still be changed in Android browser settings. Sound can be unavailable until a user interaction due to browser restrictions.
 
 GitHub Pages is public static hosting. Removing links from the page does **not** make the project source, URL, or downloaded assets inaccessible to visitors. Access control would require a different hosting architecture.
+
+## Fullscreen and integrated instrument frame
+
+The portrait and landscape frames are complete chassis artwork, not independent overlays floating above the camera. Both use riveted blue brigandine, walnut, brass, gears, ornate medallions and a transparent central viewing aperture. The inset wind rose sits behind the frame at a coordinate calculated from the exact SVG viewBox and the viewport's `object-fit: cover` transform. The ring and rivets therefore remain in registration with the rotating rose in both orientations.
+
+`docs/config/settings.json` has `display.fullscreen`, which controls fullscreen requests. When true, Telegram Mini Apps attempt `WebApp.requestFullscreen()` as the page opens. On ordinary browsers, the first tap attempts the browser Fullscreen API where supported. Browser chrome and permission prompts cannot be removed forcibly. Installed home-screen access can use `docs/manifest.webmanifest` with display mode `fullscreen`.
+
+The frame remains visible during camera scanning and disappears before the Polaroid result, which contains only the photo and matched letters/symbols. The sole visible button remains **Save image** on the result.

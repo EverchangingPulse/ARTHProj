@@ -12,7 +12,7 @@ const text = name => readFileSync(join(root, name), "utf8");
 const asset = name => readFileSync(join(root, "assets", name));
 const json = name => JSON.parse(text(name));
 const pages = ["index.html", "reference.html", "overlay-preview.html", "compile.html", "404.html"];
-const scripts = ["ar-app.js", "app-config.js", "target-compiler.js", "target-manifest.js", "north-compass.js", "vendor/wmm2025.js", "vendor/wmm2025-coefficients.js", "vendor/wmm2025-utils.js"];
+const scripts = ["ar-app.js", "app-config.js", "target-compiler.js", "target-manifest.js", "north-compass.js", "instrument-layout.js", "immersive-fullscreen.js", "vendor/wmm2025.js", "vendor/wmm2025-coefficients.js", "vendor/wmm2025-utils.js"];
 
 test("public frontend and administrator configuration exist", () => {
   for (const file of [...pages, ...scripts, "styles.css", "reference.css", "config/targets.json", "config/settings.json"]) {
@@ -75,6 +75,7 @@ test("admin settings JSON is validated and has valid camera defaults", () => {
   assert.equal(settings.compass.requestLocation, true);
   assert.equal(settings.compass.headingSmoothing, 0.21);
   assert.equal(settings.scanner.style, "astrolabe");
+  assert.equal(settings.display.fullscreen, true);
 });
 
 test("settings config rejects invalid values", () => {
@@ -84,6 +85,7 @@ test("settings config rejects invalid values", () => {
   assert.throws(() => parseAppSettings({ ...config, capture: { ...config.capture, shutterSound: "yes" } }), /shutterSound/);
   assert.throws(() => parseAppSettings({ ...config, camera: { autoStart: "true" } }), /camera.autoStart/);
   assert.throws(() => parseAppSettings({ ...config, scanner: { enabled: true, style: "invalid" } }), /scanner.style/);
+  assert.throws(() => parseAppSettings({ ...config, display: { fullscreen: "yes" } }), /display.fullscreen/);
 });
 
 test("public users cannot create or replace reference pictures", () => {
@@ -162,7 +164,7 @@ test("camera capture provides gray flash, shutter sound and static Polaroid", ()
   for (const name of ["scanner-hud", "capture-flash", "polaroid", "frozen-canvas"]) {
     assert.ok(html.includes('id="' + name + '"'));
   }
-  assert.match(css, /@keyframes scanner-sweep/);
+  assert.match(css, /@keyframes turn-orbit/);
   assert.match(css, /@keyframes gray-flash/);
   assert.match(css, /@keyframes develop/);
   assert.match(app, /class MechanicalShutter/);
@@ -222,11 +224,15 @@ test("portrait and landscape artwork use different compositions and preserve the
   assert.match(html, /<picture class="instrument-picture">/);
   assert.match(html, /<source media="\(orientation: landscape\)" srcset="\.\/assets\/astrolabe-landscape\.svg">/);
   assert.match(html, /<img class="scanner-instrument" src="\.\/assets\/astrolabe-portrait\.svg"/);
-  assert.match(portrait, /viewBox="0 0 900 1520"/);
-  assert.match(landscape, /viewBox="0 0 1400 720"/);
-  assert.match(portrait, /portrait-wooden-rails/);
-  assert.match(landscape, /landscape-brigandine-wings/);
-  assert.match(css, /object-fit: contain/);
+  assert.match(portrait, /viewBox="0 0 900 1900"/);
+  assert.match(landscape, /viewBox="0 0 1900 900"/);
+  assert.match(portrait, /mask="url\(#apertures\)"/);
+  assert.match(landscape, /mask="url\(#apertures\)"/);
+  assert.match(portrait, /url\(#stud\)/);
+  assert.match(landscape, /url\(#stud\)/);
+  assert.match(portrait, /id="cloth"/);
+  assert.match(landscape, /id="woodgrain"/);
+  assert.match(css, /object-fit: cover/);
   assert.match(css, /@media \(orientation: landscape\)/);
 });
 
@@ -251,7 +257,7 @@ test("automatic camera and Polaroid gestures remain usable with only the save bu
   assert.match(app, /this\.stopTracking\(\);\s*this\.running = false;\s*this\.view\.update\("Developing photograph/);
   assert.match(css, /--app-height/);
   assert.doesNotMatch(css, /min-height: 530px|47dvh/);
-  assert.match(text("index.html"), /ar-app\.js\?v=5\.1\.0/);
+  assert.match(text("index.html"), /ar-app\.js\?v=6\.0\.0/);
 });
 
 test("Renaissance ornament stays visible during live camera but disappears for captured photograph", () => {
@@ -259,7 +265,7 @@ test("Renaissance ornament stays visible during live camera but disappears for c
   const css = text("styles.css");
   assert.match(app, /this\.scanner\.hidden = !this\.scannerEnabled \|\| \["frozen", "developing"\]\.includes\(state\)/);
   assert.match(app, /this\.compass\.classList\.toggle\("compass-concealed", \["frozen", "developing"\]\.includes\(state\)\)/);
-  assert.match(css, /\.compass-panel\.compass-concealed \{ visibility: hidden; \}/);
+  assert.match(css, /\.embedded-compass\.compass-concealed \{ visibility: hidden; \}/);
   assert.match(app, /this\.view\.scanner\.hidden = true;\s*await nextFrame\(\)/);
 });
 
@@ -285,4 +291,41 @@ test("only a frozen augmented image can be saved and its button cannot trigger a
   assert.match(app, /event\.target\.closest\("#save-btn"\)/);
   assert.match(app, /event\.stopPropagation\(\)/);
   assert.match(css, /\.polaroid-save/);
+});
+
+test("all instrument artwork is one full-viewport mechanical frame with transparent apertures", () => {
+  const css = text("styles.css");
+  const portrait = text("assets/astrolabe-portrait.svg");
+  const landscape = text("assets/astrolabe-landscape.svg");
+  for (const artwork of [portrait, landscape]) {
+    assert.match(artwork, /<mask id="apertures">/);
+    assert.match(artwork, /<circle[^>]+fill="black"/);
+    assert.match(artwork, /id="cloth"/);
+    assert.match(artwork, /id="woodgrain"/);
+    assert.match(artwork, /stroke="url\(#brass\)"/);
+  }
+  assert.match(css, /\.instrument-picture \{/);
+  assert.match(css, /object-fit: cover/);
+  assert.match(text("index.html"), /class="compass-panel embedded-compass"/);
+});
+
+test("Telegram full screen and ordinary browser gesture fallback are wired", () => {
+  const app = text("ar-app.js");
+  const fullscreen = text("immersive-fullscreen.js");
+  assert.match(app, /fullscreen\.onLaunch\(settings\.display\.fullscreen\)/);
+  assert.match(app, /fullscreen\.requestFromGesture\(\)/);
+  assert.match(fullscreen, /requestFullscreen/);
+  assert.match(fullscreen, /fullscreenEnabled/);
+  assert.match(text("config/settings.json"), /"fullscreen": true/);
+  assert.match(text("styles.css"), /\.camera-stage:fullscreen/);
+});
+
+test("compass is visually integrated below the brass plate", () => {
+  const html = text("index.html");
+  const css = text("styles.css");
+  assert.ok(html.indexOf('id="compass-panel"') < html.indexOf('id="scanner-hud"'));
+  assert.match(css, /\.embedded-compass/);
+  assert.match(css, /z-index: 3/);
+  assert.match(css, /\.scanner-hud \{/);
+  assert.match(css, /z-index: 4/);
 });

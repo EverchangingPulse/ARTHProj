@@ -1,0 +1,18 @@
+{
+  "name": "Speculum Arcana — Renaissance AR Instrument",
+  "short_name": "Speculum Arcana",
+  "description": "An immersive Renaissance instrument that reveals hidden symbols.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#15100e",
+  "theme_color": "#15100e",
+  "icons": [
+    {
+      "src": "./assets/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

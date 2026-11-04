@@ -23,5 +23,8 @@
     "preferTrueNorth": true,
     "requestLocation": true,
     "headingSmoothing": 0.21
+  },
+  "display": {
+    "fullscreen": true
   }
 }
