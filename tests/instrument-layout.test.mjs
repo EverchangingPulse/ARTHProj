@@ -30,6 +30,7 @@ test("relative instrument anchors survive rotation and changes in screen size", 
     assert.equal(layout.compass.centerX, geometry.compass.centerX);
     assert.equal(layout.compass.centerY, geometry.compass.centerY);
     assert.equal(layout.compass.diameter, geometry.compass.diameter);
+    assert.equal(layout.compass.aspectRatio, geometry.compass.aspectRatio);
     assert.ok(layout.frame.width <= width + 1e-8);
     assert.ok(layout.frame.height <= height + 1e-8);
     const x = width * layout.frame.centerX - layout.frame.width / 2 + layout.frame.width * layout.compass.centerX;
@@ -57,7 +58,7 @@ test("layout uses each loaded image's intrinsic aspect ratio, including fallback
 test("relative HUD frame can be re-centered and scaled from config without changing code", () => {
   const changed = {
     frame: { centerX: 0.45, centerY: 0.55, scale: 0.8 },
-    compass: { centerX: 0.28, centerY: 0.7, diameter: 0.18 }
+    compass: { centerX: 0.28, centerY: 0.7, diameter: 0.18, aspectRatio: 1 }
   };
   const layout = calculateInstrumentLayout(800, 1000, 0.5628, changed);
   assert.equal(layout.frame.centerX, 0.45);
@@ -119,5 +120,40 @@ test("photographic compass anchors follow normalized alpha-aperture centers at a
     assert.equal(rendered.compass.centerX, config.compass.centerX);
     assert.equal(rendered.compass.centerY, config.compass.centerY);
     assert.equal(rendered.compass.diameter, config.compass.diameter);
+  }
+});
+
+test("portrait compass matches precisely measured 124px radius relative to the 941×1672 HUD", () => {
+  const { compass } = photographicPortrait;
+  assert.ok(Math.abs(compass.centerX * 941 - 207) < 0.0001);
+  assert.ok(Math.abs(compass.centerY * 1672 - 1238) < 0.0001);
+  assert.ok(Math.abs(compass.diameter * 941 / 2 - 124) < 0.0001);
+  assert.equal(compass.aspectRatio, 1);
+});
+
+test("landscape compass matches elliptical opening with ±1px radii", () => {
+  const { compass } = photographicLandscape;
+  const radiusX = compass.diameter * 1200 / 2;
+  const radiusY = radiusX / compass.aspectRatio;
+  assert.ok(Math.abs(compass.centerX * 1200 - 141) < 0.0001);
+  assert.ok(Math.abs(compass.centerY * 650 - 234) < 0.0001);
+  assert.ok(Math.abs(radiusX - 75) < 0.001);
+  assert.ok(Math.abs(radiusY - 92) < 0.001);
+});
+
+test("calibrated rotor scales proportionally for four screen dimensions", () => {
+  for (const [w,h,aspect,geometry] of [
+    [390,844,941/1672,photographicPortrait],
+    [1080,2340,941/1672,photographicPortrait],
+    [844,390,1200/650,photographicLandscape],
+    [1920,1080,1200/650,photographicLandscape]
+  ]) {
+    const layout = calculateInstrumentLayout(w,h,aspect,geometry);
+    const cw = layout.frame.width * layout.compass.diameter;
+    const ch = cw / layout.compass.aspectRatio;
+    assert.ok(cw > 0 && ch > 0);
+    assert.ok(Math.abs(cw/ch-layout.compass.aspectRatio) < 1e-9);
+    assert.equal(layout.compass.centerX,geometry.compass.centerX);
+    assert.equal(layout.compass.centerY,geometry.compass.centerY);
   }
 });

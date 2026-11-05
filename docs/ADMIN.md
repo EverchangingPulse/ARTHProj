@@ -126,3 +126,14 @@ This replaces the earlier pixel-coordinate specifications documented above.
 ## Unified rotating compass face (9.1)
 
 Both the rose and blue enamel disc are now a single centered rotor inside the compass viewport, rather than a rose enlarged independently above a stationary blue backing. The photographic HUD remains fixed while the full rotor turns under the glass overlay. The CSS rotor is exactly 100% of the compass housing in both axes, with no offsets or overflow scaling. Compass calibration uses normalized coordinates derived from each photographic asset's transparent aperture: portrait center (207/941, 1238/1672) and landscape center (141/1200, 234/650). Diameters include a small overlap underneath the stationary brass lip to avoid visible seams. These numbers live only as relative proportions in `settings.json` and scale with the same frame as the artwork.
+
+## Calibrated compass apertures v10
+
+The **WebP alpha masks were expanded** rather than merely enlarging the rose layer. They are geometric apertures with anti-aliased edges, verified to within ±1 native source-image pixel.
+
+| Artwork | Native dimensions | Compass centre (px) | Aperture radius (px) | Config centre | Config diameter | Aspect ratio |
+| --- | --- | --- | --- | --- | --- | --- |
+| portrait | 941 × 1672 | (207, 1238) | (124, 124) | (207/941, 1238/1672) | 248/941 | 1 |
+| landscape | 1200 × 650 | (141, 234) | (75, 92) | (141/1200, 234/650) | 150/1200 | 75/92 |
+
+The photographed brass rim stays intact immediately outside each new transparent aperture. `instrument-layout.js` places the rotor as percentages of the same image frame that renders the WebP, so the position and scale remain correct through fullscreen and rotation. `compass.aspectRatio` controls the elliptical landscape aperture without resizing the whole HUD. The blue enamel backing also fills the stationary casing under the glass so the rose cannot reveal gaps as it turns. Calibration can still be adjusted in `docs/config/settings.json`, without editing JavaScript.

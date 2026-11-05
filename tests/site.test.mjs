@@ -259,7 +259,7 @@ test("automatic camera and Polaroid gestures remain usable with only the save bu
   assert.match(app, /this\.stopTracking\(\);\s*this\.running = false;\s*this\.view\.update\("Developing photograph/);
   assert.match(css, /--app-height/);
   assert.doesNotMatch(css, /min-height: 530px|47dvh/);
-  assert.match(text("index.html"), /ar-app\.js\?v=9\.1\.0/);
+  assert.match(text("index.html"), /ar-app\.js\?v=10\.0\.0/);
 });
 
 test("Renaissance ornament stays visible during live camera but disappears for captured photograph", () => {
@@ -378,7 +378,7 @@ test("blue enamel disc and wind rose form one centered, rotating compass face", 
   const html = text("index.html");
   const app = text("ar-app.js");
   const svg = text("assets/wind-rose.svg");
-  assert.match(html, /<div id="wind-rose" class="compass-rotor">\s*<img src="\.\/assets\/wind-rose\.svg\?v=9\.1\.0"/);
+  assert.match(html, /<div id="wind-rose" class="compass-rotor">\s*<img src="\.\/assets\/wind-rose\.svg\?v=10\.0\.0"/);
   assert.match(css, /\.compass-rotor \{[^}]+inset: 0;[^}]+width: 100%;[^}]+height: 100%;[^}]+transform-origin: 50% 50%;/s);
   assert.match(css, /\.compass-rotor img \{[^}]+inset: 0;[^}]+width: 100%;[^}]+height: 100%;/s);
   assert.doesNotMatch(css, /\.compass-casing img \{[^}]+126%/s);
@@ -411,8 +411,8 @@ test("both overlays derive from one responsive frame instead of independent pixe
   assert.match(layout, /--frame-width/);
   assert.match(layout, /orientationTimers/);
   assert.match(app, /layout\.configure\(settings\.instrument\)/);
-  assert.match(html, /styles\.css\?v=9\.1\.0/);
-  assert.match(html, /ar-app\.js\?v=9\.1\.0/);
+  assert.match(html, /styles\.css\?v=10\.0\.0/);
+  assert.match(html, /ar-app\.js\?v=10\.0\.0/);
 });
 
 
@@ -439,11 +439,26 @@ test("compass blue circle remains centered as portrait and landscape artwork sca
   const svg = text("assets/wind-rose.svg");
   const css = text("styles.css");
   assert.deepEqual(settings.instrument.photographic.portrait.compass, {
-    centerX: 0.219979, centerY: 0.740431, diameter: 0.185972
+    centerX: 0.21997875, centerY: 0.74043062, diameter: 0.26354942, aspectRatio: 1
   });
   assert.deepEqual(settings.instrument.photographic.landscape.compass, {
-    centerX: 0.1175, centerY: 0.36, diameter: 0.0925
+    centerX: 0.1175, centerY: 0.36, diameter: 0.125, aspectRatio: 0.81521739
   });
   assert.match(css, /\.compass-rotor \{[^}]+border-radius: 50%;/s);
   assert.match(svg, /cx="120" cy="120" r="120"/);
+});
+
+test("blue compass face, portrait size and landscape aspect ratio match revised transparent WebP openings", () => {
+  const config = json("config/settings.json");
+  const css = text("styles.css");
+  const html = text("index.html");
+  const layout = text("instrument-layout.js");
+  assert.equal(config.instrument.photographic.portrait.compass.diameter, 0.26354942);
+  assert.equal(config.instrument.photographic.landscape.compass.diameter, 0.125);
+  assert.equal(config.instrument.photographic.landscape.compass.aspectRatio, 0.81521739);
+  assert.match(css, /aspect-ratio: var\(--compass-aspect-ratio, 1\)/);
+  assert.match(css, /\.compass-casing \{[^}]+background: radial-gradient\(ellipse/s);
+  assert.match(layout, /--compass-aspect-ratio/);
+  assert.match(html, /hud-portrait\.webp\?v=10\.0\.0/);
+  assert.match(html, /hud-landscape\.webp\?v=10\.0\.0/);
 });

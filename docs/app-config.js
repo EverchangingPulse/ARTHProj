@@ -32,7 +32,8 @@ function parseRelativeInstrument(config) {
         compass: {
           centerX: requireNumber(source?.compass?.centerX, 0, 1, prefix + ".compass.centerX"),
           centerY: requireNumber(source?.compass?.centerY, 0, 1, prefix + ".compass.centerY"),
-          diameter: requireNumber(source?.compass?.diameter, 0.01, 1, prefix + ".compass.diameter")
+          diameter: requireNumber(source?.compass?.diameter, 0.01, 1, prefix + ".compass.diameter"),
+          aspectRatio: requireNumber(source?.compass?.aspectRatio, 0.4, 2, prefix + ".compass.aspectRatio")
         }
       };
     }

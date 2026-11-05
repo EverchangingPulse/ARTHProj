@@ -35,9 +35,10 @@
           "scale": 1
         },
         "compass": {
-          "centerX": 0.219979,
-          "centerY": 0.740431,
-          "diameter": 0.185972
+          "centerX": 0.21997875,
+          "centerY": 0.74043062,
+          "diameter": 0.26354942,
+          "aspectRatio": 1
         }
       },
       "landscape": {
@@ -49,7 +50,8 @@
         "compass": {
           "centerX": 0.1175,
           "centerY": 0.36,
-          "diameter": 0.0925
+          "diameter": 0.125,
+          "aspectRatio": 0.81521739
         }
       }
     },
@@ -63,7 +65,8 @@
         "compass": {
           "centerX": 0.26444,
           "centerY": 0.85789,
-          "diameter": 0.19556
+          "diameter": 0.19556,
+          "aspectRatio": 1
         }
       },
       "landscape": {
@@ -75,7 +78,8 @@
         "compass": {
           "centerX": 0.12895,
           "centerY": 0.25111,
-          "diameter": 0.08316
+          "diameter": 0.08316,
+          "aspectRatio": 1
         }
       }
     }

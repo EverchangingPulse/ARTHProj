@@ -139,3 +139,7 @@ Landscape mode preserves the complete frame with `object-fit: contain`, rather t
 ### Compass calibration v8.1
 
 Adjusted the wind-rose position against the physical brass rings instead of the off-center transparent cutout. Increased dial scale and added regression tests for portrait/landscape positioning. The photographic assets and camera recognition are unchanged.
+
+## Compass apertures v10
+
+Photographic HUD images have physically enlarged transparent compass apertures: portrait centre (207, 1238), radius 124 px in 941 × 1672 art; landscape centre (141, 234), elliptical radii 75 × 92 px in 1200 × 650 art. The relative compass config now includes an `aspectRatio` per orientation. Both the HUD and compass remain co-scaled during rotation, with the blue enamel background filling the entire lens.

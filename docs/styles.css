@@ -100,7 +100,7 @@ a-scene canvas { display: block; }
   left: var(--compass-center-x, 21.998%);
   top: var(--compass-center-y, 74.043%);
   width: var(--compass-diameter, 18.6%);
-  aspect-ratio: 1;
+  aspect-ratio: var(--compass-aspect-ratio, 1);
   transform: translate(-50%, -50%);
   border-radius: 50%;
   overflow: hidden;
@@ -113,6 +113,7 @@ a-scene canvas { display: block; }
   inset: 0;
   overflow: hidden;
   border-radius: 50%;
+  background: radial-gradient(ellipse at 45% 34%, #284a78 0%, #142e51 64%, #071626 100%);
 }
 .compass-rotor {
   position: absolute;
@@ -130,7 +131,7 @@ a-scene canvas { display: block; }
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: fill;
   user-select: none;
   -webkit-user-drag: none;
 }
