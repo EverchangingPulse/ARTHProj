@@ -103,30 +103,30 @@ test("browser fullscreen gesture fallback still works", () => {
   }
 });
 
-test("photographic compass anchors follow normalized alpha-aperture centers at all screen sizes", () => {
+test("compass positions scale independently of viewport size using calibrated HUD ratios", () => {
   const portrait = settings.instrument.photographic.portrait;
   const landscape = settings.instrument.photographic.landscape;
-  assert.ok(Math.abs(portrait.compass.centerX - 207 / 941) < 1e-6);
-  assert.ok(Math.abs(portrait.compass.centerY - 1242 / 1672) < 1e-6);
+  assert.ok(Math.abs(portrait.compass.centerX - 0.22831023) < 1e-8);
+  assert.ok(Math.abs(portrait.compass.centerY - 1.32419624 * 941 / 1672) < 1e-8);
   assert.ok(Math.abs(landscape.compass.centerX - 141 / 1200) < 1e-6);
   assert.ok(Math.abs(landscape.compass.centerY - 234 / 650) < 1e-6);
-  for (const [width,height,aspect,config] of [
-    [390,844,941 / 1672,portrait],
-    [1080,2340,941 / 1672,portrait],
-    [844,390,1200 / 650,landscape],
-    [1920,1080,1200 / 650,landscape]
+  for (const [width, height, aspect, config] of [
+    [390, 844, 941 / 1672, portrait],
+    [1080, 2340, 941 / 1672, portrait],
+    [844, 390, 1200 / 650, landscape],
+    [1920, 1080, 1200 / 650, landscape]
   ]) {
-    const rendered = calculateInstrumentLayout(width,height,aspect,config);
+    const rendered = calculateInstrumentLayout(width, height, aspect, config);
     assert.equal(rendered.compass.centerX, config.compass.centerX);
     assert.equal(rendered.compass.centerY, config.compass.centerY);
     assert.equal(rendered.compass.diameter, config.compass.diameter);
   }
 });
 
-test("portrait compass aligns to the brass rim with a 4px center and radius correction", () => {
+test("portrait compass preserves the manually calibrated normalized center and radius", () => {
   const { compass } = photographicPortrait;
-  assert.ok(Math.abs(compass.centerX * 941 - 207) < 0.0001);
-  assert.ok(Math.abs(compass.centerY * 1672 - 1242) < 0.0001);
+  assert.ok(Math.abs(compass.centerX * 941 - 0.22831023 * 941) < 0.0001);
+  assert.ok(Math.abs(compass.centerY * 1672 - 1.32419624 * 941) < 0.0001);
   assert.ok(Math.abs(compass.diameter * 941 / 2 - 128) < 0.0001);
   assert.equal(compass.aspectRatio, 1);
 });
@@ -158,15 +158,19 @@ test("calibrated rotor scales proportionally for four screen dimensions", () => 
   }
 });
 
-test("portrait close-up alignment compensates bezel offset without exposing camera seams", () => {
+test("user-measured portrait compass retains its diameter and changes center in both axes", () => {
   const { compass } = photographicPortrait;
-  const blueCenterY = compass.centerY * 1672;
-  const blueRadius = compass.diameter * 941 / 2;
-  const apertureCenterY = 1238;
-  const apertureRadius = 124;
-  assert.ok(Math.abs(blueCenterY - 1242) < 0.0001);
-  assert.ok(Math.abs(blueRadius - 128) < 0.0001);
-  assert.ok(blueCenterY - blueRadius <= apertureCenterY - apertureRadius + 0.001);
-  assert.ok(blueCenterY + blueRadius >= apertureCenterY + apertureRadius);
-  assert.ok(Math.abs(compass.centerX * 941 - 207) < 0.0001);
+  const measuredXOverHudWidth = 0.22831023;
+  const measuredYOverHudWidth = 1.32419624;
+  const hudWidth = 941;
+  const hudHeight = 1672;
+  const measuredYOverHudHeight = measuredYOverHudWidth * hudWidth / hudHeight;
+  assert.ok(Math.abs(compass.centerX - measuredXOverHudWidth) < 1e-8);
+  assert.ok(Math.abs(compass.centerY - measuredYOverHudHeight) < 1e-8);
+  assert.equal(compass.diameter, 0.27205101);
+  assert.equal(compass.aspectRatio, 1);
+  assert.ok(compass.centerX > 0.21997875);
+  assert.ok(compass.centerY > 0.74282297);
+  assert.ok(compass.centerX < 1 && compass.centerY < 1);
 });
+
