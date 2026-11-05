@@ -259,7 +259,7 @@ test("automatic camera and Polaroid gestures remain usable with only the save bu
   assert.match(app, /this\.stopTracking\(\);\s*this\.running = false;\s*this\.view\.update\("Developing photograph/);
   assert.match(css, /--app-height/);
   assert.doesNotMatch(css, /min-height: 530px|47dvh/);
-  assert.match(text("index.html"), /ar-app\.js\?v=10\.0\.0/);
+  assert.match(text("index.html"), /ar-app\.js\?v=11\.0\.0/);
 });
 
 test("Renaissance ornament stays visible during live camera but disappears for captured photograph", () => {
