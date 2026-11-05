@@ -107,7 +107,7 @@ test("photographic compass anchors follow normalized alpha-aperture centers at a
   const portrait = settings.instrument.photographic.portrait;
   const landscape = settings.instrument.photographic.landscape;
   assert.ok(Math.abs(portrait.compass.centerX - 207 / 941) < 1e-6);
-  assert.ok(Math.abs(portrait.compass.centerY - 1238 / 1672) < 1e-6);
+  assert.ok(Math.abs(portrait.compass.centerY - 1242 / 1672) < 1e-6);
   assert.ok(Math.abs(landscape.compass.centerX - 141 / 1200) < 1e-6);
   assert.ok(Math.abs(landscape.compass.centerY - 234 / 650) < 1e-6);
   for (const [width,height,aspect,config] of [
@@ -123,11 +123,11 @@ test("photographic compass anchors follow normalized alpha-aperture centers at a
   }
 });
 
-test("portrait compass matches precisely measured 124px radius relative to the 941×1672 HUD", () => {
+test("portrait compass aligns to the brass rim with a 4px center and radius correction", () => {
   const { compass } = photographicPortrait;
   assert.ok(Math.abs(compass.centerX * 941 - 207) < 0.0001);
-  assert.ok(Math.abs(compass.centerY * 1672 - 1238) < 0.0001);
-  assert.ok(Math.abs(compass.diameter * 941 / 2 - 124) < 0.0001);
+  assert.ok(Math.abs(compass.centerY * 1672 - 1242) < 0.0001);
+  assert.ok(Math.abs(compass.diameter * 941 / 2 - 128) < 0.0001);
   assert.equal(compass.aspectRatio, 1);
 });
 
@@ -156,4 +156,17 @@ test("calibrated rotor scales proportionally for four screen dimensions", () => 
     assert.equal(layout.compass.centerX,geometry.compass.centerX);
     assert.equal(layout.compass.centerY,geometry.compass.centerY);
   }
+});
+
+test("portrait close-up alignment compensates bezel offset without exposing camera seams", () => {
+  const { compass } = photographicPortrait;
+  const blueCenterY = compass.centerY * 1672;
+  const blueRadius = compass.diameter * 941 / 2;
+  const apertureCenterY = 1238;
+  const apertureRadius = 124;
+  assert.ok(Math.abs(blueCenterY - 1242) < 0.0001);
+  assert.ok(Math.abs(blueRadius - 128) < 0.0001);
+  assert.ok(blueCenterY - blueRadius <= apertureCenterY - apertureRadius + 0.001);
+  assert.ok(blueCenterY + blueRadius >= apertureCenterY + apertureRadius);
+  assert.ok(Math.abs(compass.centerX * 941 - 207) < 0.0001);
 });

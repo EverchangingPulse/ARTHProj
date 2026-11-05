@@ -143,3 +143,7 @@ Adjusted the wind-rose position against the physical brass rings instead of the 
 ## Compass apertures v10
 
 Photographic HUD images have physically enlarged transparent compass apertures: portrait centre (207, 1238), radius 124 px in 941 × 1672 art; landscape centre (141, 234), elliptical radii 75 × 92 px in 1200 × 650 art. The relative compass config now includes an `aspectRatio` per orientation. Both the HUD and compass remain co-scaled during rotation, with the blue enamel background filling the entire lens.
+
+### Portrait compass optical alignment (v10.1)
+
+The portrait wind rose moves 4 native artwork pixels downward to align visually with its brass bezel. A corresponding 4-pixel radial overlap prevents camera bleed through the pre-existing transparent aperture. This is accomplished solely through the relative `instrument.photographic.portrait.compass` settings; the image assets, landscape compass, and AR capture behavior are unchanged.

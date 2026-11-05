@@ -439,7 +439,7 @@ test("compass blue circle remains centered as portrait and landscape artwork sca
   const svg = text("assets/wind-rose.svg");
   const css = text("styles.css");
   assert.deepEqual(settings.instrument.photographic.portrait.compass, {
-    centerX: 0.21997875, centerY: 0.74043062, diameter: 0.26354942, aspectRatio: 1
+    centerX: 0.21997875, centerY: 0.74282297, diameter: 0.27205101, aspectRatio: 1
   });
   assert.deepEqual(settings.instrument.photographic.landscape.compass, {
     centerX: 0.1175, centerY: 0.36, diameter: 0.125, aspectRatio: 0.81521739
@@ -453,7 +453,7 @@ test("blue compass face, portrait size and landscape aspect ratio match revised 
   const css = text("styles.css");
   const html = text("index.html");
   const layout = text("instrument-layout.js");
-  assert.equal(config.instrument.photographic.portrait.compass.diameter, 0.26354942);
+  assert.equal(config.instrument.photographic.portrait.compass.diameter, 0.27205101);
   assert.equal(config.instrument.photographic.landscape.compass.diameter, 0.125);
   assert.equal(config.instrument.photographic.landscape.compass.aspectRatio, 0.81521739);
   assert.match(css, /aspect-ratio: var\(--compass-aspect-ratio, 1\)/);
