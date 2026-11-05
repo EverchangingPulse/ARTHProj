@@ -7,6 +7,10 @@ import { InstrumentArtwork } from "./instrument-artwork.js?v=7.0.0";
 import { ImmersiveFullscreen } from "./immersive-fullscreen.js?v=6.0.0";
 
 const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
+const isTelegramMiniApp = () => Boolean(
+  window.Telegram?.WebApp &&
+  (window.Telegram.WebApp.initData || /(?:[?#&])tgWebAppPlatform=/.test(window.location.href))
+);
 
 class StatusView {
   constructor() {
@@ -123,6 +127,8 @@ class ArExperience {
     this.scene = document.getElementById("ar-scene");
     this.stage = document.getElementById("camera-stage");
     this.preview = new CameraPreview(document.getElementById("permission-preview"));
+    this.telegramStartRequired = isTelegramMiniApp();
+    this.awaitingCameraGesture = false;
     this.snapshot = document.getElementById("frozen-canvas");
     this.flash = document.getElementById("capture-flash");
     this.saveButton = document.getElementById("save-btn");
@@ -148,6 +154,7 @@ class ArExperience {
     if (this.starting || this.running) return;
     this.stopTracking();
     this.starting = true;
+    this.awaitingCameraGesture = false;
     const generation = ++this.generation;
     this.frozen = false;
     this.capturedTargetName = null;
@@ -188,10 +195,13 @@ class ArExperience {
       system.imageTargetSrc = targetUrl;
       system.maxTrack = settings.tracking.maxTrack;
       this.preview.close();
-      this.running = true;
       this.starting = false;
-      this.view.update("Opening AR camera…", "loading");
-      system.start();
+      this.awaitingCameraGesture = this.telegramStartRequired;
+      if (this.awaitingCameraGesture) {
+        this.view.update("Camera ready. Tap the instrument to start the camera in Telegram.", "loading");
+        return;
+      }
+      this.activateCamera();
     } catch (error) {
       if (generation !== this.generation) return;
       this.preview.close();
@@ -201,6 +211,24 @@ class ArExperience {
         ? "Camera permission denied. Allow camera access and retry."
         : error?.message || "Unable to open the AR camera.";
       this.view.update(message, "error");
+    }
+  }
+
+  activateCamera() {
+    if (this.running || this.starting) return;
+    const system = this.scene.systems?.["mindar-image-system"];
+    if (!system) {
+      this.view.update("AR camera system is unavailable.", "error");
+      return;
+    }
+    this.awaitingCameraGesture = false;
+    this.running = true;
+    this.view.update("Opening AR camera…", "loading");
+    try {
+      system.start();
+    } catch (error) {
+      this.running = false;
+      this.view.update(error?.message || "Unable to start the camera.", "error");
     }
   }
 
@@ -408,6 +436,7 @@ class ArExperience {
     this.stopTracking();
     this.running = false;
     this.starting = false;
+    this.awaitingCameraGesture = false;
     this.activeAnchor = null;
     this.frozen = false;
     this.flash.hidden = true;
@@ -432,6 +461,7 @@ function initialize() {
 
   stage.addEventListener("pointerdown", event => {
     if (event.target.closest("#save-btn")) return;
+    if (app.awaitingCameraGesture) app.activateCamera();
     app.sound.unlock();
     void compass.askPermission();
     fullscreen.requestFromGesture();
