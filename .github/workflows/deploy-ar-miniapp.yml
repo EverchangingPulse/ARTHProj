@@ -1,0 +1,96 @@
+name: Publish Speculum Arcana Mini App to Cloudflare
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "docs/**"
+      - "cloudflare-frontend/**"
+      - "worker/wrangler.toml"
+      - ".github/workflows/deploy-ar-miniapp.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: speculum-arcana-telegram-deployment
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Validate the frontend and Telegram bot
+        run: |
+          node --test tests/*.test.mjs
+          node --test worker/test/*.test.mjs
+          test -s docs/index.html
+          test -s docs/assets/hud-renaissance-portrait.svg
+          test -s docs/assets/hourglass-portrait-mask.svg
+          test -s docs/assets/compass-renaissance.svg
+          test -s docs/assets/amber-lens-portrait.svg
+      - name: Check Cloudflare deployment credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        shell: bash
+        run: |
+          if [[ -z "$CLOUDFLARE_API_TOKEN" || -z "$CLOUDFLARE_ACCOUNT_ID" ]]; then
+            echo "::error::Set CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets before deploying."
+            exit 1
+          fi
+      - name: Publish the current AR frontend to the original Cloudflare hostname
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4 deploy --config cloudflare-frontend/wrangler.toml
+      - name: Verify the Cloudflare-hosted Mini App is accessible
+        shell: bash
+        run: |
+          for attempt in 1 2 3 4 5; do
+            if curl --fail --silent --show-error --location --max-time 20               -H 'Cache-Control: no-cache'               "https://ar.daviedeiana5.workers.dev/?revision=${GITHUB_SHA}"               -o "$RUNNER_TEMP/speculum-index.html"               && grep -q '<title>Speculum Arcana</title>' "$RUNNER_TEMP/speculum-index.html"; then
+              echo "The AR frontend is reachable on the original Cloudflare hostname."
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "::error::Cloudflare frontend did not become reachable. Bot URL was not changed on the deployed Worker."
+          exit 1
+      - name: Update the separate Telegram bot Worker launch URL
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4 deploy --config worker/wrangler.toml
+      - name: Set the bot chat menu to open the Cloudflare Mini App
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+        run: |
+          node --input-type=module <<'NODE'
+          const token = process.env.TELEGRAM_BOT_TOKEN;
+          if (!token) {
+            console.log("TELEGRAM_BOT_TOKEN is not configured; set the BotFather menu manually.");
+            process.exit(0);
+          }
+          const url = "https://ar.daviedeiana5.workers.dev/";
+          const response = await fetch(`https://api.telegram.org/bot${token}/setChatMenuButton`, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              menu_button: {
+                type: "web_app",
+                text: "Open Speculum Arcana",
+                web_app: { url }
+              }
+            })
+          });
+          const result = await response.json();
+          if (!response.ok || !result.ok) {
+            throw new Error(`Telegram menu update failed: ${result.description ?? response.status}`);
+          }
+          console.log("Bot chat menu now opens the Cloudflare AR Mini App.");
+          NODE
