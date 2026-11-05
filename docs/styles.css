@@ -89,15 +89,6 @@ a-scene canvas { display: block; }
   user-select: none;
   -webkit-user-drag: none;
 }
-.camera-stage[data-instrument-mode="portrait"]:not([data-frameportrait="illustrated"]) .portrait-instrument {
-  -webkit-mask-image: url("./assets/portrait-amber-cutout-mask.svg?v=11.6.0");
-  mask-image: url("./assets/portrait-amber-cutout-mask.svg?v=11.6.0");
-  -webkit-mask-size: 100% 100%;
-  mask-size: 100% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  mask-mode: alpha;
-}
 .landscape-instrument { display: none; }
 .camera-stage[data-instrument-mode="landscape"] .portrait-instrument { display: none; }
 .camera-stage[data-instrument-mode="landscape"] .landscape-instrument { display: block; }
@@ -117,7 +108,7 @@ a-scene canvas { display: block; }
 }
 .embedded-compass {
   position: absolute;
-  z-index: 1;
+  z-index: 3;
   left: var(--compass-center-x, 21.998%);
   top: var(--compass-center-y, 74.043%);
   width: var(--compass-diameter, 18.6%);
@@ -139,6 +130,8 @@ a-scene canvas { display: block; }
   pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
+  transform-origin: 49.95% 73.03%;
+  transform: translate(-.53%, -.18%) scale(.96, .86);
 }
 .camera-stage[data-instrument-mode="landscape"] .hourglass-instrument,
 .camera-stage[data-frameportrait="illustrated"] .hourglass-instrument {
@@ -146,10 +139,10 @@ a-scene canvas { display: block; }
 }
 .amber-lens-camera {
   position: absolute;
-  left: 14.134%;
+  left: 13.3900%;
   top: 9.3301%;
-  width: 18.7035%;
-  height: 10.6459%;
+  width: 18.8098%;
+  height: 10.9450%;
   z-index: 3;
   display: block;
   clip-path: ellipse(50% 50% at 50% 50%);
@@ -160,6 +153,8 @@ a-scene canvas { display: block; }
   position: absolute;
   inset: 0;
   z-index: 4;
+  transform-origin: 23.48% 14.66%;
+  transform: translate(-.744%, .12%) scale(1, 1.025);
   display: block;
   width: 100%;
   height: 100%;
