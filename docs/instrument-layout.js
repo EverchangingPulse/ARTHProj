@@ -21,6 +21,12 @@ export function calculateInstrumentLayout(viewportWidth, viewportHeight, aspectR
       centerY: geometry.compass.centerY,
       diameter: geometry.compass.diameter,
       aspectRatio: geometry.compass.aspectRatio
+    },
+    aperture: {
+      centerX: (geometry.aperture ?? geometry.compass).centerX,
+      centerY: (geometry.aperture ?? geometry.compass).centerY,
+      diameter: (geometry.aperture ?? geometry.compass).diameter,
+      aspectRatio: (geometry.aperture ?? geometry.compass).aspectRatio
     }
   };
 }
@@ -114,6 +120,10 @@ export class InstrumentLayout {
     this.stage.style.setProperty("--compass-center-y", percent(layout.compass.centerY));
     this.stage.style.setProperty("--compass-diameter", percent(layout.compass.diameter));
     this.stage.style.setProperty("--compass-aspect-ratio", layout.compass.aspectRatio.toFixed(8));
+    this.stage.style.setProperty("--aperture-center-x", percent(layout.aperture.centerX));
+    this.stage.style.setProperty("--aperture-center-y", percent(layout.aperture.centerY));
+    this.stage.style.setProperty("--aperture-diameter", percent(layout.aperture.diameter));
+    this.stage.style.setProperty("--aperture-aspect-ratio", layout.aperture.aspectRatio.toFixed(8));
     this.frameElement.hidden = false;
 
     const viewportSignature = width.toFixed(2) + "x" + height.toFixed(2);

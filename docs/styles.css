@@ -75,7 +75,7 @@ a-scene canvas { display: block; }
 .instrument-picture {
   position: absolute;
   inset: 0;
-  z-index: 1;
+  z-index: 2;
   width: 100%;
   height: 100%;
 }
@@ -94,9 +94,21 @@ a-scene canvas { display: block; }
 .camera-stage[data-instrument-mode="landscape"] .landscape-instrument { display: block; }
 .scanner-hud[data-state="found"] .scanner-instrument { filter: saturate(1.08) brightness(1.03); }
 .scanner-hud[data-state="error"] .scanner-instrument { filter: grayscale(.66) brightness(.68); }
-.embedded-compass {
+.compass-aperture-backing {
   position: absolute;
   z-index: 0;
+  left: var(--aperture-center-x, 21.9979%);
+  top: var(--aperture-center-y, 74.0431%);
+  width: var(--aperture-diameter, 28.0553%);
+  aspect-ratio: var(--aperture-aspect-ratio, 1);
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(ellipse at 45% 34%, #294d79 0%, #173556 62%, #081828 100%);
+  pointer-events: none;
+}
+.embedded-compass {
+  position: absolute;
+  z-index: 1;
   left: var(--compass-center-x, 21.998%);
   top: var(--compass-center-y, 74.043%);
   width: var(--compass-diameter, 18.6%);

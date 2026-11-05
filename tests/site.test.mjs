@@ -330,8 +330,8 @@ test("compass is a child of the HUD's relative frame, underneath the brass image
   const image = html.indexOf('id="portrait-instrument"');
   assert.ok(frame >= 0 && compass > frame && image > compass);
   assert.match(css, /\.instrument-frame \{/);
-  assert.match(css, /\.embedded-compass \{[^}]+z-index: 0;/s);
-  assert.match(css, /\.instrument-picture \{[^}]+z-index: 1;/s);
+  assert.match(css, /\.embedded-compass \{[^}]+z-index: 1;/s);
+  assert.match(css, /\.instrument-picture \{[^}]+z-index: 2;/s);
 });
 
 test("relative compass anchors are validated and supplied by administrator JSON", async () => {
@@ -411,8 +411,8 @@ test("both overlays derive from one responsive frame instead of independent pixe
   assert.match(layout, /--frame-width/);
   assert.match(layout, /orientationTimers/);
   assert.match(app, /layout\.configure\(settings\.instrument\)/);
-  assert.match(html, /styles\.css\?v=10\.0\.0/);
-  assert.match(html, /ar-app\.js\?v=10\.0\.0/);
+  assert.match(html, /styles\.css\?v=11\.0\.0/);
+  assert.match(html, /ar-app\.js\?v=11\.0\.0/);
 });
 
 
@@ -439,7 +439,7 @@ test("compass blue circle remains centered as portrait and landscape artwork sca
   const svg = text("assets/wind-rose.svg");
   const css = text("styles.css");
   assert.deepEqual(settings.instrument.photographic.portrait.compass, {
-    centerX: 0.22831023, centerY: 0.74525638, diameter: 0.27205101, aspectRatio: 1
+    centerX: 0.22932602, centerY: 0.74737494, diameter: 0.27205101, aspectRatio: 1
   });
   assert.deepEqual(settings.instrument.photographic.landscape.compass, {
     centerX: 0.1175, centerY: 0.36, diameter: 0.125, aspectRatio: 0.81521739
@@ -461,4 +461,34 @@ test("blue compass face, portrait size and landscape aspect ratio match revised 
   assert.match(layout, /--compass-aspect-ratio/);
   assert.match(html, /hud-portrait\.webp\?v=10\.0\.0/);
   assert.match(html, /hud-landscape\.webp\?v=10\.0\.0/);
+});
+
+test("permanent compass backing remains independent of rotating face and behind the brass HUD", async () => {
+  const html = text("index.html");
+  const css = text("styles.css");
+  const layout = text("instrument-layout.js");
+  const { parseAppSettings } = await import("../docs/app-config.js");
+  const parsed = parseAppSettings(json("config/settings.json"));
+  const backing = html.indexOf('id="compass-aperture-backing"');
+  const rotor = html.indexOf('id="compass-panel"');
+  const artwork = html.indexOf('class="instrument-picture"');
+  assert.ok(backing >= 0 && backing < rotor && rotor < artwork);
+  assert.match(css, /\.compass-aperture-backing \{[^}]+z-index: 0;/s);
+  assert.match(css, /\.embedded-compass \{[^}]+z-index: 1;/s);
+  assert.match(css, /\.instrument-picture \{[^}]+z-index: 2;/s);
+  assert.match(css, /\.compass-aperture-backing \{[^}]+background: radial-gradient\(ellipse/s);
+  assert.match(layout, /--aperture-center-x/);
+  assert.match(layout, /--aperture-center-y/);
+  assert.match(layout, /--aperture-diameter/);
+  assert.match(layout, /--aperture-aspect-ratio/);
+  assert.notEqual(parsed.instrument.photographic.portrait.aperture.centerX, parsed.instrument.photographic.portrait.compass.centerX);
+  assert.notEqual(parsed.instrument.photographic.portrait.aperture.centerY, parsed.instrument.photographic.portrait.compass.centerY);
+  assert.equal(parsed.instrument.illustrated.portrait.aperture.centerX, parsed.instrument.illustrated.portrait.compass.centerX);
+});
+
+test("invalid alpha-hole backing geometry is rejected by parser", async () => {
+  const { parseAppSettings } = await import("../docs/app-config.js");
+  const config = json("config/settings.json");
+  config.instrument.photographic.portrait.aperture.diameter = 1.2;
+  assert.throws(() => parseAppSettings(config), /instrument\.photographic\.portrait\.aperture\.diameter/);
 });

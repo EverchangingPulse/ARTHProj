@@ -106,8 +106,8 @@ test("browser fullscreen gesture fallback still works", () => {
 test("compass positions scale independently of viewport size using calibrated HUD ratios", () => {
   const portrait = settings.instrument.photographic.portrait;
   const landscape = settings.instrument.photographic.landscape;
-  assert.ok(Math.abs(portrait.compass.centerX - 0.22831023) < 1e-8);
-  assert.ok(Math.abs(portrait.compass.centerY - 1.32419624 * 941 / 1672) < 1e-8);
+  assert.ok(Math.abs(portrait.compass.centerX - 0.22932602) < 1e-8);
+  assert.ok(Math.abs(portrait.compass.centerY - 1.32796058 * 941 / 1672) < 1e-8);
   assert.ok(Math.abs(landscape.compass.centerX - 141 / 1200) < 1e-6);
   assert.ok(Math.abs(landscape.compass.centerY - 234 / 650) < 1e-6);
   for (const [width, height, aspect, config] of [
@@ -125,8 +125,8 @@ test("compass positions scale independently of viewport size using calibrated HU
 
 test("portrait compass preserves the manually calibrated normalized center and radius", () => {
   const { compass } = photographicPortrait;
-  assert.ok(Math.abs(compass.centerX * 941 - 0.22831023 * 941) < 0.0001);
-  assert.ok(Math.abs(compass.centerY * 1672 - 1.32419624 * 941) < 0.0001);
+  assert.ok(Math.abs(compass.centerX * 941 - 0.22932602 * 941) < 0.0001);
+  assert.ok(Math.abs(compass.centerY * 1672 - 1.32796058 * 941) < 0.0001);
   assert.ok(Math.abs(compass.diameter * 941 / 2 - 128) < 0.0001);
   assert.equal(compass.aspectRatio, 1);
 });
@@ -160,8 +160,8 @@ test("calibrated rotor scales proportionally for four screen dimensions", () => 
 
 test("user-measured portrait compass retains its diameter and changes center in both axes", () => {
   const { compass } = photographicPortrait;
-  const measuredXOverHudWidth = 0.22831023;
-  const measuredYOverHudWidth = 1.32419624;
+  const measuredXOverHudWidth = 0.22932602;
+  const measuredYOverHudWidth = 1.32796058;
   const hudWidth = 941;
   const hudHeight = 1672;
   const measuredYOverHudHeight = measuredYOverHudWidth * hudWidth / hudHeight;
@@ -169,8 +169,45 @@ test("user-measured portrait compass retains its diameter and changes center in 
   assert.ok(Math.abs(compass.centerY - measuredYOverHudHeight) < 1e-8);
   assert.equal(compass.diameter, 0.27205101);
   assert.equal(compass.aspectRatio, 1);
-  assert.ok(compass.centerX > 0.21997875);
-  assert.ok(compass.centerY > 0.74282297);
+  assert.ok(compass.centerX > 0.22831023);
+  assert.ok(compass.centerY > 0.74525638);
   assert.ok(compass.centerX < 1 && compass.centerY < 1);
 });
 
+
+test("nonrotating blue backing covers the original alpha aperture after manual compass centering", () => {
+  const layout = calculateInstrumentLayout(390, 844, 941 / 1672, photographicPortrait);
+  const aperture = layout.aperture;
+  const compass = layout.compass;
+  assert.notEqual(compass.centerX, aperture.centerX);
+  assert.notEqual(compass.centerY, aperture.centerY);
+  assert.ok(Math.abs(aperture.centerX * 941 - 207) < 0.0001);
+  assert.ok(Math.abs(aperture.centerY * 1672 - 1238) < 0.0001);
+  assert.ok(Math.abs(aperture.diameter * 941 / 2 - 132) < 0.0001);
+  assert.equal(aperture.aspectRatio, 1);
+});
+
+test("both photographic backings extend beyond the original camera-transparent cutouts", () => {
+  for (const [config, width, height, x, y, radiusX, radiusY] of [
+    [photographicPortrait, 941, 1672, 207, 1238, 124, 124],
+    [photographicLandscape, 1200, 650, 141, 234, 75, 92]
+  ]) {
+    const aperture = config.aperture;
+    const renderedX = aperture.centerX * width;
+    const renderedY = aperture.centerY * height;
+    const renderedRadiusX = aperture.diameter * width / 2;
+    const renderedRadiusY = renderedRadiusX / aperture.aspectRatio;
+    assert.ok(Math.abs(renderedX - x) < 0.0001);
+    assert.ok(Math.abs(renderedY - y) < 0.0001);
+    assert.ok(renderedRadiusX >= radiusX + 7);
+    assert.ok(renderedRadiusY >= radiusY + 7);
+  }
+});
+
+test("illustrated fallback inherits compass position for enamel backing", () => {
+  const config = settings.instrument.illustrated.portrait;
+  const layout = calculateInstrumentLayout(390, 844, 900 / 1900, config);
+  assert.equal(layout.aperture.centerX, layout.compass.centerX);
+  assert.equal(layout.aperture.centerY, layout.compass.centerY);
+  assert.equal(layout.aperture.diameter, layout.compass.diameter);
+});

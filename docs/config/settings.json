@@ -35,9 +35,15 @@
           "scale": 1
         },
         "compass": {
-          "centerX": 0.22831023,
-          "centerY": 0.74525638,
+          "centerX": 0.22932602,
+          "centerY": 0.74737494,
           "diameter": 0.27205101,
+          "aspectRatio": 1
+        },
+        "aperture": {
+          "centerX": 0.21997875,
+          "centerY": 0.74043062,
+          "diameter": 0.2805526,
           "aspectRatio": 1
         }
       },
@@ -51,6 +57,12 @@
           "centerX": 0.1175,
           "centerY": 0.36,
           "diameter": 0.125,
+          "aspectRatio": 0.81521739
+        },
+        "aperture": {
+          "centerX": 0.1175,
+          "centerY": 0.36,
+          "diameter": 0.14,
           "aspectRatio": 0.81521739
         }
       }
