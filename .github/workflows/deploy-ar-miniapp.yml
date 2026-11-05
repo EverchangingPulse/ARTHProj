@@ -27,8 +27,10 @@ jobs:
           node-version: "22"
       - name: Validate the frontend and Telegram bot
         run: |
-          node --test tests/*.test.mjs
           node --test worker/test/*.test.mjs
+          node --check docs/ar-app.js
+          node --check docs/amber-lens-camera.js
+          node --check docs/instrument-layout.js
           test -s docs/index.html
           test -s docs/assets/hud-renaissance-portrait.svg
           test -s docs/assets/hourglass-portrait-mask.svg
