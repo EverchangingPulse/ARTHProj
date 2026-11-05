@@ -114,3 +114,11 @@ The frame and compass now share a single `object-fit: contain` transform: `Math.
 ## Photographic compass calibration (8.1)
 
 The opaque brass ring and the transparent WebP compass cutout are not perfectly concentric. Calibrated from the photographed brass housing, the portrait wind-rose anchor is at `(210, 1253)` with radius `102` in the 941 × 1672 image; landscape uses `(152, 241)` and radius `68` in the 1200 × 650 image. The image is expanded symmetrically to 126% inside the anchored circular viewport, keeping rotation centered while making the visible rose fill more of the opening. The WebP artwork and camera aperture remain unchanged.
+
+## Relative instrument and compass placement (9.0)
+
+Both HUD artwork and its rotating compass now share **one DOM parent**, `#instrument-frame`. The chassis never uses pixel-based anchoring; it scales from the image's intrinsic aspect ratio to fit the actual viewport, and its configurable `frame.centerX`, `frame.centerY` and `frame.scale` are relative proportions. The compass is a child of the same frame, positioned with `compass.centerX` and `compass.centerY` (0–1 fractions of the image dimensions), with `compass.diameter` as a fraction of the **artwork width**. In CSS, these are percentages of the shared frame, so their alignment is independent of device pixels, orientation, browser chrome and fullscreen mode.
+
+Edit `docs/config/settings.json` under `instrument.photographic.portrait`, `instrument.photographic.landscape`, `instrument.illustrated.portrait` and `instrument.illustrated.landscape` to calibrate geometry without changing JavaScript or committing new assets. The illustrated entries apply only if the corresponding photographic WebP fails to load. Adjusting a configuration ratio updates the artwork and compass together after a reload.
+
+This replaces the earlier pixel-coordinate specifications documented above.

@@ -25,5 +25,59 @@
   },
   "display": {
     "fullscreen": true
+  },
+  "instrument": {
+    "photographic": {
+      "portrait": {
+        "frame": {
+          "centerX": 0.5,
+          "centerY": 0.5,
+          "scale": 1
+        },
+        "compass": {
+          "centerX": 0.22317,
+          "centerY": 0.7494,
+          "diameter": 0.21679
+        }
+      },
+      "landscape": {
+        "frame": {
+          "centerX": 0.5,
+          "centerY": 0.5,
+          "scale": 1
+        },
+        "compass": {
+          "centerX": 0.12667,
+          "centerY": 0.37077,
+          "diameter": 0.11333
+        }
+      }
+    },
+    "illustrated": {
+      "portrait": {
+        "frame": {
+          "centerX": 0.5,
+          "centerY": 0.5,
+          "scale": 1
+        },
+        "compass": {
+          "centerX": 0.26444,
+          "centerY": 0.85789,
+          "diameter": 0.19556
+        }
+      },
+      "landscape": {
+        "frame": {
+          "centerX": 0.5,
+          "centerY": 0.5,
+          "scale": 1
+        },
+        "compass": {
+          "centerX": 0.12895,
+          "centerY": 0.25111,
+          "diameter": 0.08316
+        }
+      }
+    }
   }
 }

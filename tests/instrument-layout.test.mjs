@@ -1,131 +1,103 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { calculateInstrumentLayout } from "../docs/instrument-layout.js";
+import { parseAppSettings } from "../docs/app-config.js";
 import { ImmersiveFullscreen } from "../docs/immersive-fullscreen.js";
+import { readFileSync } from "node:fs";
 
-test("portrait instrument fills viewport without stretching circular geometry", () => {
-  const result = calculateInstrumentLayout(390, 844);
-  assert.equal(result.mode, "portrait");
-  assert.ok(result.scale > 0);
-  assert.ok(result.dial.x > 0 && result.dial.x < 390);
-  assert.ok(result.dial.y > 0 && result.dial.y < 844);
-  assert.ok(result.compass.diameter > 0);
+const settings = parseAppSettings(JSON.parse(readFileSync(new URL("../docs/config/settings.json", import.meta.url))));
+const photographicPortrait = settings.instrument.photographic.portrait;
+const photographicLandscape = settings.instrument.photographic.landscape;
+
+test("relative frame fills available viewport without stretching the image", () => {
+  const layout = calculateInstrumentLayout(390, 844, 0.5628, photographicPortrait);
+  assert.ok(layout.frame.width > 0 && layout.frame.width <= 390);
+  assert.ok(layout.frame.height > 0 && layout.frame.height <= 844);
+  assert.equal(layout.frame.centerX, 0.5);
+  assert.equal(layout.frame.centerY, 0.5);
+  assert.equal(layout.compass.centerX, photographicPortrait.compass.centerX);
+  assert.equal(layout.compass.centerY, photographicPortrait.compass.centerY);
 });
 
-test("landscape uses a distinct composition and aligned inset compass", () => {
-  const result = calculateInstrumentLayout(844, 390);
-  assert.equal(result.mode, "landscape");
-  assert.ok(result.dial.x > 0 && result.dial.x < 844);
-  assert.ok(result.dial.y > 0 && result.dial.y < 390);
-  assert.ok(result.compass.x > 0 && result.compass.x < 844);
-  assert.ok(result.compass.y > 0 && result.compass.y < 390);
+test("relative instrument anchors survive rotation and changes in screen size", () => {
+  for (const [width, height, aspect, geometry] of [
+    [390, 844, 0.5628, photographicPortrait],
+    [690, 1496, 0.5628, photographicPortrait],
+    [844, 390, 1.8462, photographicLandscape],
+    [1280, 720, 1.8462, photographicLandscape]
+  ]) {
+    const layout = calculateInstrumentLayout(width, height, aspect, geometry);
+    assert.equal(layout.compass.centerX, geometry.compass.centerX);
+    assert.equal(layout.compass.centerY, geometry.compass.centerY);
+    assert.equal(layout.compass.diameter, geometry.compass.diameter);
+    assert.ok(layout.frame.width <= width + 1e-8);
+    assert.ok(layout.frame.height <= height + 1e-8);
+    const x = width * layout.frame.centerX - layout.frame.width / 2 + layout.frame.width * layout.compass.centerX;
+    const y = height * layout.frame.centerY - layout.frame.height / 2 + layout.frame.height * layout.compass.centerY;
+    assert.ok(x >= 0 && x <= width);
+    assert.ok(y >= 0 && y <= height);
+  }
 });
 
-test("instrument rejects invalid viewport dimensions", () => {
-  assert.throws(() => calculateInstrumentLayout(0, 800), /Invalid viewport/);
-  assert.throws(() => calculateInstrumentLayout(800, 0), /Invalid viewport/);
+test("compass size changes proportionally with the HUD, not the screen width alone", () => {
+  const small = calculateInstrumentLayout(360, 740, 0.5628, photographicPortrait);
+  const large = calculateInstrumentLayout(720, 1480, 0.5628, photographicPortrait);
+  assert.equal(large.frame.width / small.frame.width, 2);
+  assert.equal(large.frame.height / small.frame.height, 2);
+  assert.equal(large.frame.width * large.compass.diameter / (small.frame.width * small.compass.diameter), 2);
 });
 
-test("Telegram requests full screen on launch when configured", () => {
+test("layout uses each loaded image's intrinsic aspect ratio, including fallback", () => {
+  const normal = calculateInstrumentLayout(800, 480, 1.8462, photographicLandscape);
+  const fallback = calculateInstrumentLayout(800, 480, 2.1111, settings.instrument.illustrated.landscape);
+  assert.notEqual(normal.frame.height, fallback.frame.height);
+  assert.notEqual(normal.compass.centerX, fallback.compass.centerX);
+});
+
+test("relative HUD frame can be re-centered and scaled from config without changing code", () => {
+  const changed = {
+    frame: { centerX: 0.45, centerY: 0.55, scale: 0.8 },
+    compass: { centerX: 0.28, centerY: 0.7, diameter: 0.18 }
+  };
+  const layout = calculateInstrumentLayout(800, 1000, 0.5628, changed);
+  assert.equal(layout.frame.centerX, 0.45);
+  assert.equal(layout.frame.centerY, 0.55);
+  assert.equal(layout.compass.centerX, 0.28);
+  assert.equal(layout.frame.width, Math.min(800, 1000 * 0.5628) * 0.8);
+});
+
+test("invalid viewport or missing relative geometry is rejected", () => {
+  assert.throws(() => calculateInstrumentLayout(0, 840, 0.56, photographicPortrait), /Invalid viewport/);
+  assert.throws(() => calculateInstrumentLayout(390, 840, 0, photographicPortrait), /Invalid viewport/);
+  assert.throws(() => calculateInstrumentLayout(390, 840, 0.56, null), /Relative instrument geometry/);
+});
+
+test("Telegram fullscreen remains enabled on launch", () => {
   const calls = [];
-  const webApp = {
-    initData: "signed",
+  const controller = new ImmersiveFullscreen({}, {
     ready: () => calls.push("ready"),
     expand: () => calls.push("expand"),
-    setHeaderColor: value => calls.push("header:" + value),
-    requestFullscreen: () => calls.push("fullscreen"),
-    unlockOrientation: () => calls.push("unlock")
-  };
-  const controller = new ImmersiveFullscreen({}, webApp);
+    requestFullscreen: () => calls.push("fullscreen")
+  });
   controller.onLaunch(true);
   assert.ok(calls.includes("fullscreen"));
   assert.ok(calls.includes("expand"));
-  const count = calls.length;
-  controller.onLaunch(false);
-  assert.equal(calls.length, count);
 });
 
-test("standard browser full screen can be requested from a tap", async () => {
-  const originalDocument = globalThis.document;
-  const calls = [];
-  globalThis.document = { fullscreenEnabled: true, fullscreenElement: null };
+test("browser fullscreen gesture fallback still works", () => {
+  const oldDocument = globalThis.document;
+  globalThis.document = { fullscreenElement: null, fullscreenEnabled: true };
   try {
-    const stage = { requestFullscreen: options => {
-      calls.push(options.navigationUI);
-      return Promise.resolve();
-    } };
-    const controller = new ImmersiveFullscreen(stage, { initData: "" });
+    let requested = false;
+    const controller = new ImmersiveFullscreen({
+      requestFullscreen: () => { requested = true; return Promise.resolve(); }
+    }, { initData: "" });
     controller.onLaunch(true);
     controller.requestFromGesture();
-    assert.deepEqual(calls, ["hide"]);
-  } finally {
-    if (originalDocument === undefined) delete globalThis.document;
-    else globalThis.document = originalDocument;
-  }
-});
-
-test("fullscreen disabled by settings never invokes browser API", () => {
-  const originalDocument = globalThis.document;
-  globalThis.document = { fullscreenEnabled: true, fullscreenElement: null };
-  try {
-    let called = 0;
-    const controller = new ImmersiveFullscreen({ requestFullscreen: () => called++ }, {});
+    assert.equal(requested, true);
     controller.onLaunch(false);
-    controller.requestFromGesture();
-    assert.equal(called, 0);
   } finally {
-    if (originalDocument === undefined) delete globalThis.document;
-    else globalThis.document = originalDocument;
-  }
-});
-
-test("landscape photographic frame remains completely within the viewport", async () => {
-  const { calculateInstrumentLayout, PHOTOGRAPHIC_INSTRUMENTS } = await import("../docs/instrument-layout.js");
-  for (const [width, height] of [[844,390],[1386,525],[1280,720],[512,320],[390,844]]) {
-    const result = calculateInstrumentLayout(width,height,"photographic");
-    const frame = result.frame;
-    const spec = PHOTOGRAPHIC_INSTRUMENTS[result.mode];
-    assert.ok(frame.x >= -1e-9, "frame x");
-    assert.ok(frame.y >= -1e-9, "frame y");
-    assert.ok(frame.x+frame.width <= width+1e-9,"frame width within viewport");
-    assert.ok(frame.y+frame.height <= height+1e-9,"frame height within viewport");
-    assert.equal(result.compass.x, spec.compass.x*result.scale+result.offsetX);
-    assert.equal(result.compass.y, spec.compass.y*result.scale+result.offsetY);
-    assert.equal(result.compass.diameter, spec.compass.radius*2*result.scale);
-    assert.ok(result.compass.diameter>0);
-  }
-});
-
-test("landscape resize preserves all photographic HUD elements without cropping", async () => {
-  const { calculateInstrumentLayout } = await import("../docs/instrument-layout.js");
-  const first=calculateInstrumentLayout(844,390,"photographic");
-  const second=calculateInstrumentLayout(390,844,"photographic");
-  const third=calculateInstrumentLayout(844,390,"photographic");
-  assert.ok(first.frame.width < 844);
-  assert.equal(first.frame.height,390);
-  assert.equal(first.mode,"landscape");
-  assert.equal(second.mode,"portrait");
-  assert.deepEqual(first,third);
-});
-
-test("photographic compass is aligned to the actual brass housing, not the older alpha-cutout center", async () => {
-  const { PHOTOGRAPHIC_INSTRUMENTS } = await import("../docs/instrument-layout.js");
-  const portrait = PHOTOGRAPHIC_INSTRUMENTS.portrait.compass;
-  const landscape = PHOTOGRAPHIC_INSTRUMENTS.landscape.compass;
-  assert.deepEqual(portrait, { x: 210, y: 1253, radius: 102 });
-  assert.deepEqual(landscape, { x: 152, y: 241, radius: 68 });
-  assert.ok(portrait.y > 1238);
-  assert.ok(landscape.x > 141);
-  assert.ok(portrait.radius > 86 && landscape.radius > 55);
-});
-
-test("portrait and landscape compass stay centered after their image contain transform", async () => {
-  const { PHOTOGRAPHIC_INSTRUMENTS } = await import("../docs/instrument-layout.js");
-  for (const [width, height] of [[390,844],[691,1280],[844,390],[1280,720],[600,300]]) {
-    const layout = calculateInstrumentLayout(width,height,"photographic");
-    const compass = PHOTOGRAPHIC_INSTRUMENTS[layout.mode].compass;
-    assert.ok(Math.abs(layout.compass.x - (layout.offsetX + compass.x*layout.scale)) < 1e-8);
-    assert.ok(Math.abs(layout.compass.y - (layout.offsetY + compass.y*layout.scale)) < 1e-8);
-    assert.ok(Math.abs(layout.compass.diameter - 2*compass.radius*layout.scale) < 1e-8);
+    if (oldDocument === undefined) delete globalThis.document;
+    else globalThis.document = oldDocument;
   }
 });

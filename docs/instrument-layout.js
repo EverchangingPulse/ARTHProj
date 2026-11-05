@@ -1,69 +1,41 @@
-export const ILLUSTRATED_INSTRUMENTS = Object.freeze({
-  portrait: Object.freeze({
-    width: 900,
-    height: 1900,
-    dial: Object.freeze({ x: 450, y: 922, radius: 312 }),
-    compass: Object.freeze({ x: 238, y: 1630, radius: 88 })
-  }),
-  landscape: Object.freeze({
-    width: 1900,
-    height: 900,
-    dial: Object.freeze({ x: 945, y: 452, radius: 291 }),
-    compass: Object.freeze({ x: 245, y: 226, radius: 79 })
-  })
-});
+export function calculateInstrumentLayout(viewportWidth, viewportHeight, aspectRatio, geometry) {
+  if (![viewportWidth, viewportHeight, aspectRatio].every(value => Number.isFinite(value) && value > 0)) {
+    throw new Error("Invalid viewport or artwork aspect ratio.");
+  }
+  if (!geometry?.frame || !geometry?.compass) {
+    throw new Error("Relative instrument geometry is required.");
+  }
 
-export const PHOTOGRAPHIC_INSTRUMENTS = Object.freeze({
-  portrait: Object.freeze({
-    width: 941,
-    height: 1672,
-    dial: Object.freeze({ x: 466, y: 715, radius: 289 }),
-    compass: Object.freeze({ x: 210, y: 1253, radius: 102 })
-  }),
-  landscape: Object.freeze({
-    width: 1200,
-    height: 650,
-    dial: Object.freeze({ x: 602, y: 330, radius: 245 }),
-    compass: Object.freeze({ x: 152, y: 241, radius: 68 })
-  })
-});
+  const frameWidth = Math.min(viewportWidth, viewportHeight * aspectRatio) * geometry.frame.scale;
+  const frameHeight = frameWidth / aspectRatio;
 
-export const INSTRUMENTS = ILLUSTRATED_INSTRUMENTS;
-
-export function calculateInstrumentLayout(width, height, artwork = "illustrated") {
-  if (!(width > 0) || !(height > 0)) throw new Error("Invalid viewport dimensions.");
-  const mode = width > height ? "landscape" : "portrait";
-  const selected = artwork === "photographic" ? PHOTOGRAPHIC_INSTRUMENTS : ILLUSTRATED_INSTRUMENTS;
-  const spec = selected[mode];
-  const scale = Math.min(width / spec.width, height / spec.height);
-  const offsetX = (width - spec.width * scale) / 2;
-  const offsetY = (height - spec.height * scale) / 2;
-  const position = point => ({
-    x: point.x * scale + offsetX,
-    y: point.y * scale + offsetY,
-    diameter: point.radius * 2 * scale
-  });
   return {
-    mode,
-    compass: position(spec.compass),
-    dial: position(spec.dial),
     frame: {
-      x: offsetX,
-      y: offsetY,
-      width: spec.width * scale,
-      height: spec.height * scale
+      centerX: geometry.frame.centerX,
+      centerY: geometry.frame.centerY,
+      width: frameWidth,
+      height: frameHeight
     },
-    scale,
-    offsetX,
-    offsetY
+    compass: {
+      centerX: geometry.compass.centerX,
+      centerY: geometry.compass.centerY,
+      diameter: geometry.compass.diameter
+    }
   };
 }
 
 export class InstrumentLayout {
   constructor(stage, options = {}) {
     this.stage = stage;
+    this.frameElement = stage.querySelector("#instrument-frame");
+    this.images = {
+      portrait: stage.querySelector("#portrait-instrument"),
+      landscape: stage.querySelector("#landscape-instrument")
+    };
+    this.geometry = null;
     this.frame = null;
     this.last = "";
+    this.lastViewport = "";
     this.listener = options.onResize || (() => {});
     this.onChange = () => this.schedule();
     this.onRotate = () => {
@@ -75,6 +47,12 @@ export class InstrumentLayout {
     };
     this.observer = null;
     this.orientationTimers = [];
+  }
+
+  configure(geometry) {
+    this.geometry = geometry;
+    this.last = "";
+    this.schedule();
   }
 
   start() {
@@ -93,33 +71,54 @@ export class InstrumentLayout {
     if (this.frame !== null) return;
     this.frame = requestAnimationFrame(() => {
       this.frame = null;
-      const viewportHeight = window.visualViewport?.height || window.innerHeight;
-      if (Number.isFinite(viewportHeight) && viewportHeight > 0) {
-        const heightValue = Math.round(viewportHeight) + "px";
-        if (document.documentElement.style.getPropertyValue("--app-height") !== heightValue) {
-          document.documentElement.style.setProperty("--app-height", heightValue);
-        }
-      }
-      const { width, height } = this.stage.getBoundingClientRect();
-      if (!width || !height) return;
-      const orientation = width > height ? "landscape" : "portrait";
-      const artwork = this.stage.dataset["frame" + orientation] || "illustrated";
-      const signature = width.toFixed(1) + "x" + height.toFixed(1) + ":" + artwork;
-      if (signature === this.last) return;
-      const layout = calculateInstrumentLayout(width, height, artwork);
-      this.stage.dataset.instrumentMode = layout.mode;
-      this.stage.style.setProperty("--compass-x", layout.compass.x.toFixed(2) + "px");
-      this.stage.style.setProperty("--compass-y", layout.compass.y.toFixed(2) + "px");
-      this.stage.style.setProperty("--compass-size", layout.compass.diameter.toFixed(2) + "px");
-      this.stage.style.setProperty("--dial-x", layout.dial.x.toFixed(2) + "px");
-      this.stage.style.setProperty("--dial-y", layout.dial.y.toFixed(2) + "px");
-      this.stage.style.setProperty("--dial-size", layout.dial.diameter.toFixed(2) + "px");
-      this.stage.style.setProperty("--frame-width", layout.frame.width.toFixed(2) + "px");
-      this.stage.style.setProperty("--frame-height", layout.frame.height.toFixed(2) + "px");
-      const changed = this.last !== "";
-      this.last = signature;
-      if (changed) this.listener();
+      this.update();
     });
+  }
+
+  update() {
+    const viewportHeight = window.visualViewport?.height || window.innerHeight;
+    if (Number.isFinite(viewportHeight) && viewportHeight > 0) {
+      const heightValue = Math.round(viewportHeight) + "px";
+      if (document.documentElement.style.getPropertyValue("--app-height") !== heightValue) {
+        document.documentElement.style.setProperty("--app-height", heightValue);
+      }
+    }
+
+    const { width, height } = this.stage.getBoundingClientRect();
+    if (!(width > 0 && height > 0)) return;
+
+    const orientation = width > height ? "landscape" : "portrait";
+    this.stage.dataset.instrumentMode = orientation;
+    const image = this.images[orientation];
+    const artwork = this.stage.dataset["frame" + orientation] || "photographic";
+    const geometry = this.geometry?.[artwork]?.[orientation];
+
+    if (!geometry || !image?.naturalWidth || !image?.naturalHeight) {
+      this.frameElement.hidden = true;
+      return;
+    }
+
+    const signature = [width.toFixed(2), height.toFixed(2), orientation, artwork, image.naturalWidth, image.naturalHeight, JSON.stringify(geometry)].join(":");
+    if (signature === this.last) return;
+
+    const aspectRatio = image.naturalWidth / image.naturalHeight;
+    const layout = calculateInstrumentLayout(width, height, aspectRatio, geometry);
+    const percent = value => (value * 100).toFixed(4) + "%";
+
+    this.stage.style.setProperty("--frame-center-x", percent(layout.frame.centerX));
+    this.stage.style.setProperty("--frame-center-y", percent(layout.frame.centerY));
+    this.stage.style.setProperty("--frame-width", layout.frame.width.toFixed(2) + "px");
+    this.stage.style.setProperty("--frame-height", layout.frame.height.toFixed(2) + "px");
+    this.stage.style.setProperty("--compass-center-x", percent(layout.compass.centerX));
+    this.stage.style.setProperty("--compass-center-y", percent(layout.compass.centerY));
+    this.stage.style.setProperty("--compass-diameter", percent(layout.compass.diameter));
+    this.frameElement.hidden = false;
+
+    const viewportSignature = width.toFixed(2) + "x" + height.toFixed(2);
+    const changed = this.lastViewport !== "" && this.lastViewport !== viewportSignature;
+    this.lastViewport = viewportSignature;
+    this.last = signature;
+    if (changed) this.listener();
   }
 
   clearOrientationTimers() {

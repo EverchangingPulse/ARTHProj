@@ -2,7 +2,7 @@ import { loadAppSettings } from "./app-config.js?v=7.1.0";
 import { NorthCompass } from "./north-compass.js?v=7.1.0";
 import { loadTargets } from "./target-manifest.js?v=3.0.0";
 import { TargetCompiler } from "./target-compiler.js?v=3.0.0";
-import { InstrumentLayout } from "./instrument-layout.js?v=8.1.0";
+import { InstrumentLayout } from "./instrument-layout.js?v=9.0.0";
 import { InstrumentArtwork } from "./instrument-artwork.js?v=7.0.0";
 import { ImmersiveFullscreen } from "./immersive-fullscreen.js?v=6.0.0";
 
@@ -457,6 +457,7 @@ function initialize() {
   });
 
   void loadAppSettings().then(settings => {
+    layout.configure(settings.instrument);
     fullscreen.onLaunch(settings.display.fullscreen);
     compass.start(settings.compass);
     if (settings.compass.preferTrueNorth && settings.compass.requestLocation) {

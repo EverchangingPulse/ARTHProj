@@ -217,16 +217,17 @@ test("immersive experience has no modern UI controls or outward navigation", () 
   assert.match(app, /stage\.addEventListener\("pointerup"/);
 });
 
-test("portrait and landscape artwork use different compositions and preserve their proportions", () => {
+test("portrait and landscape artwork use the same responsive frame and remain undistorted", () => {
   const html = text("index.html");
   const css = text("styles.css");
   const portrait = asset("astrolabe-portrait.svg").toString("utf8");
   const landscape = asset("astrolabe-landscape.svg").toString("utf8");
-  assert.match(html, /<div class="instrument-picture">/);
+  assert.match(html, /id="instrument-frame" class="instrument-frame"/);
   assert.match(html, /id="portrait-instrument"/);
   assert.match(html, /id="landscape-instrument"/);
   assert.match(css, /\.landscape-instrument \{ display: none; \}/);
-  assert.match(css, /\.landscape-instrument \{ display: block; \}/);
+  assert.match(css, /data-instrument-mode="landscape"/);
+  assert.match(css, /\.scanner-instrument \{[^}]+object-fit: fill;/s);
   assert.match(portrait, /viewBox="0 0 900 1900"/);
   assert.match(landscape, /viewBox="0 0 1900 900"/);
   assert.match(portrait, /mask="url\(#apertures\)"/);
@@ -235,8 +236,6 @@ test("portrait and landscape artwork use different compositions and preserve the
   assert.match(landscape, /url\(#stud\)/);
   assert.match(portrait, /id="cloth"/);
   assert.match(landscape, /id="woodgrain"/);
-  assert.match(css, /object-fit: cover/);
-  assert.match(css, /@media \(orientation: landscape\)/);
 });
 
 test("compass rose sits under a stationary glass lens and does not display a bearing", () => {
@@ -323,26 +322,36 @@ test("Telegram full screen and ordinary browser gesture fallback are wired", () 
   assert.match(text("styles.css"), /\.camera-stage:fullscreen/);
 });
 
-test("compass is visually integrated below the brass plate", () => {
+test("compass is a child of the HUD's relative frame, underneath the brass image", () => {
   const html = text("index.html");
   const css = text("styles.css");
-  assert.ok(html.indexOf('id="compass-panel"') < html.indexOf('id="scanner-hud"'));
-  assert.match(css, /\.embedded-compass/);
-  assert.match(css, /z-index: 3/);
-  assert.match(css, /\.scanner-hud \{/);
-  assert.match(css, /z-index: 4/);
+  const frame = html.indexOf('id="instrument-frame"');
+  const compass = html.indexOf('id="compass-panel"');
+  const image = html.indexOf('id="portrait-instrument"');
+  assert.ok(frame >= 0 && compass > frame && image > compass);
+  assert.match(css, /\.instrument-frame \{/);
+  assert.match(css, /\.embedded-compass \{[^}]+z-index: 0;/s);
+  assert.match(css, /\.instrument-picture \{[^}]+z-index: 1;/s);
 });
 
-test("photographic HUD coordinates keep the compass behind the correct opening", async () => {
-  const { calculateInstrumentLayout, PHOTOGRAPHIC_INSTRUMENTS } = await import("../docs/instrument-layout.js");
-  for (const [mode, width, height] of [["portrait", 390, 844], ["landscape", 844, 390]]) {
-    const layout = calculateInstrumentLayout(width, height, "photographic");
-    assert.equal(layout.mode, mode);
-    assert.ok(layout.compass.x > 0 && layout.compass.x < width);
-    assert.ok(layout.compass.y > 0 && layout.compass.y < height);
-    assert.ok(layout.compass.diameter > 0);
-    assert.ok(PHOTOGRAPHIC_INSTRUMENTS[mode].width > 0);
+test("relative compass anchors are validated and supplied by administrator JSON", async () => {
+  const { parseAppSettings } = await import("../docs/app-config.js");
+  const settings = parseAppSettings(json("config/settings.json"));
+  const css = text("styles.css");
+  const layout = text("instrument-layout.js");
+  for (const artwork of ["photographic", "illustrated"]) {
+    for (const orientation of ["portrait", "landscape"]) {
+      const config = settings.instrument[artwork][orientation];
+      for (const value of Object.values(config.compass)) assert.ok(value > 0 && value <= 1);
+      assert.equal(config.frame.centerX, 0.5);
+      assert.equal(config.frame.centerY, 0.5);
+    }
   }
+  assert.match(css, /left: var\(--compass-center-x/);
+  assert.match(css, /top: var\(--compass-center-y/);
+  assert.match(css, /width: var\(--compass-diameter/);
+  assert.match(layout, /--compass-center-x/);
+  assert.doesNotMatch(layout, /1253|1238|1900|1672|941/);
 });
 
 test("photographic artwork falls back to known SVGs if media are unavailable", () => {
@@ -384,15 +393,38 @@ test("default magnetic heading uses no geographic position or location prompt", 
   assert.doesNotMatch(app, /finally\(\(\) => compass\.requestLocation\(\)\)/);
 });
 
-test("instrument fit uses contain and exactly matches compass geometry in both orientations", () => {
+test("both overlays derive from one responsive frame instead of independent pixel anchors", () => {
   const css = text("styles.css");
   const html = text("index.html");
   const layout = text("instrument-layout.js");
-  assert.match(css, /\.scanner-instrument \{[^}]+object-fit: contain;/s);
-  assert.match(css, /\.instrument-picture::before/);
-  assert.match(css, /--frame-width/);
-  assert.match(layout, /Math\.min\(width \/ spec\.width, height \/ spec\.height\)/);
+  const app = text("ar-app.js");
+  assert.match(css, /\.instrument-frame \{[^}]+left: var\(--frame-center-x[^}]+top: var\(--frame-center-y/s);
+  assert.match(css, /\.instrument-picture \{[^}]+width: 100%;[^}]+height: 100%;/s);
+  assert.match(css, /\.embedded-compass \{[^}]+left: var\(--compass-center-x[^}]+top: var\(--compass-center-y/s);
+  assert.match(layout, /const frameWidth = Math\.min\(viewportWidth, viewportHeight \* aspectRatio\)/);
+  assert.match(layout, /image\.naturalWidth \/ image\.naturalHeight/);
   assert.match(layout, /--frame-width/);
   assert.match(layout, /orientationTimers/);
-  assert.match(html, /styles\.css\?v=8\.1\.0/);
+  assert.match(app, /layout\.configure\(settings\.instrument\)/);
+  assert.match(html, /styles\.css\?v=9\.0\.0/);
+  assert.match(html, /ar-app\.js\?v=9\.0\.0/);
+});
+
+
+test("invalid relative instrument coordinates cannot be loaded", async () => {
+  const { parseAppSettings } = await import("../docs/app-config.js");
+  const config = json("config/settings.json");
+  assert.throws(() => parseAppSettings({
+    ...config,
+    instrument: {
+      ...config.instrument,
+      photographic: {
+        ...config.instrument.photographic,
+        portrait: {
+          ...config.instrument.photographic.portrait,
+          compass: { ...config.instrument.photographic.portrait.compass, centerX: 1.2 }
+        }
+      }
+    }
+  }), /instrument\.photographic\.portrait\.compass\.centerX/);
 });

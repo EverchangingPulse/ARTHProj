@@ -62,58 +62,46 @@ a-scene canvas { display: block; }
   overflow: hidden;
   pointer-events: none;
 }
+.instrument-frame {
+  position: absolute;
+  left: var(--frame-center-x, 50%);
+  top: var(--frame-center-y, 50%);
+  width: var(--frame-width, 100%);
+  height: var(--frame-height, 100%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.instrument-frame[hidden] { display: none; }
 .instrument-picture {
   position: absolute;
   inset: 0;
-  display: block;
+  z-index: 1;
   width: 100%;
   height: 100%;
 }
 .scanner-instrument {
   position: absolute;
   inset: 0;
-  display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  object-position: center center;
-  z-index: 1;
+  display: block;
+  object-fit: fill;
   user-select: none;
   -webkit-user-drag: none;
 }
-.instrument-picture::before,
-.instrument-picture::after {
-  display: none;
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: max(0px, calc((100% - var(--frame-width, 100%)) / 2 + 1px));
-  z-index: 0;
-  border-inline: 2px solid rgba(201, 151, 84, .38);
-  background:
-    repeating-radial-gradient(circle at 50% 18px, rgba(194, 146, 78, .68) 0 2px, rgba(70, 42, 29, .7) 3px 5px, transparent 6px 74px),
-    linear-gradient(90deg, #1c1311, #493021 18%, #241919 47%, #382519 70%, #100e11);
-  box-shadow: inset 0 0 24px rgba(0,0,0,.65);
-}
-.instrument-picture::before { left: 0; }
-.instrument-picture::after { right: 0; }
 .landscape-instrument { display: none; }
-@media (orientation: landscape) {
-  .instrument-picture::before, .instrument-picture::after { display: block; }
-  .portrait-instrument { display: none; }
-  .landscape-instrument { display: block; }
-}
+.camera-stage[data-instrument-mode="landscape"] .portrait-instrument { display: none; }
+.camera-stage[data-instrument-mode="landscape"] .landscape-instrument { display: block; }
 .scanner-hud[data-state="found"] .scanner-instrument { filter: saturate(1.08) brightness(1.03); }
 .scanner-hud[data-state="error"] .scanner-instrument { filter: grayscale(.66) brightness(.68); }
 .embedded-compass {
   position: absolute;
-  z-index: 3;
-  left: var(--compass-x, 22%);
-  top: var(--compass-y, 83%);
-  width: var(--compass-size, 16vw);
-  height: var(--compass-size, 16vw);
-  transform: translate(-50%,-50%);
+  z-index: 0;
+  left: var(--compass-center-x, 22.317%);
+  top: var(--compass-center-y, 74.94%);
+  width: var(--compass-diameter, 21.679%);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
   border-radius: 50%;
   padding: 0;
   overflow: hidden;

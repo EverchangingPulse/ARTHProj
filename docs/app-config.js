@@ -16,6 +16,30 @@ function requireInteger(value, min, max, path) {
   return number;
 }
 
+function parseRelativeInstrument(config) {
+  const result = {};
+  for (const artwork of ["photographic", "illustrated"]) {
+    result[artwork] = {};
+    for (const orientation of ["portrait", "landscape"]) {
+      const prefix = "instrument." + artwork + "." + orientation;
+      const source = config?.[artwork]?.[orientation];
+      result[artwork][orientation] = {
+        frame: {
+          centerX: requireNumber(source?.frame?.centerX, 0, 1, prefix + ".frame.centerX"),
+          centerY: requireNumber(source?.frame?.centerY, 0, 1, prefix + ".frame.centerY"),
+          scale: requireNumber(source?.frame?.scale, 0.2, 1, prefix + ".frame.scale")
+        },
+        compass: {
+          centerX: requireNumber(source?.compass?.centerX, 0, 1, prefix + ".compass.centerX"),
+          centerY: requireNumber(source?.compass?.centerY, 0, 1, prefix + ".compass.centerY"),
+          diameter: requireNumber(source?.compass?.diameter, 0.01, 1, prefix + ".compass.diameter")
+        }
+      };
+    }
+  }
+  return result;
+}
+
 export function parseAppSettings(config) {
   if (config?.version !== 1) throw new Error("Invalid settings version: expected version 1.");
 
@@ -35,6 +59,7 @@ export function parseAppSettings(config) {
     scanner: {
       enabled: requireBoolean(config.scanner?.enabled, "scanner.enabled")
     },
+    instrument: parseRelativeInstrument(config.instrument),
     compass: {
       enabled: requireBoolean(config.compass?.enabled, "compass.enabled"),
       preferTrueNorth: requireBoolean(config.compass?.preferTrueNorth, "compass.preferTrueNorth"),
