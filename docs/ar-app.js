@@ -14,6 +14,7 @@ class StatusView {
     this.scanner = document.getElementById("scanner-hud");
     this.polaroid = document.getElementById("polaroid");
     this.compass = document.getElementById("compass-panel");
+    this.cameraFeedback = document.getElementById("camera-feedback");
     this.scannerEnabled = true;
   }
 
@@ -22,6 +23,10 @@ class StatusView {
     this.scanner.dataset.state = state;
     this.scanner.hidden = !this.scannerEnabled || ["frozen", "developing"].includes(state);
     this.compass.classList.toggle("compass-concealed", ["frozen", "developing"].includes(state));
+    this.cameraFeedback.textContent = state === "error"
+      ? message + " Tap the screen to retry. If Telegram blocks the camera, open the page in Chrome."
+      : message;
+    this.cameraFeedback.hidden = !["loading", "error"].includes(state);
     this.polaroid.hidden = state !== "frozen";
   }
 }
@@ -157,12 +162,10 @@ class ArExperience {
     }
 
     try {
-      const cameraPermission = this.preview.open();
-      const configuration = Promise.all([
+      const [settings, targets] = await Promise.all([
         preloadedSettings ? Promise.resolve(preloadedSettings) : loadAppSettings(),
         loadTargets()
       ]);
-      const [, [settings, targets]] = await Promise.all([cameraPermission, configuration]);
       if (generation !== this.generation) return;
 
       this.opacity = settings.overlay.opacity;
@@ -172,6 +175,7 @@ class ArExperience {
       this.view.scannerEnabled = settings.scanner.enabled;
       this.targets = targets;
       await this.waitForScene();
+      this.scene.renderer?.setClearAlpha(0);
       await this.installAnchors();
       const targetUrl = await this.compiler.prepare(targets, message => {
         if (generation === this.generation) this.view.update(message, "loading");
