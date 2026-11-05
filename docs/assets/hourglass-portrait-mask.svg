@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="941" height="1672" viewBox="0 0 941 1672" fill="none">
+<defs>
+<path id="glassOutline" d="M481 1111 L474 1111 L473 1112 L459 1112 L458 1113 L452 1114 L437 1122 L430 1130 L427 1136 L427 1138 L424 1145 L424 1149 L423 1150 L423 1163 L425 1167 L427 1169 L430 1175 L442 1190 L449 1202 L454 1206 L454 1207 L463 1218 L463 1221 L462 1223 L460 1225 L454 1235 L450 1237 L450 1239 L442 1248 L441 1251 L437 1256 L431 1268 L430 1274 L428 1277 L428 1280 L427 1281 L427 1296 L428 1297 L428 1301 L433 1311 L441 1320 L447 1323 L449 1325 L451 1325 L453 1327 L455 1327 L462 1330 L471 1330 L472 1329 L485 1329 L486 1328 L490 1327 L496 1322 L497 1322 L504 1315 L505 1312 L507 1310 L507 1308 L509 1304 L509 1301 L511 1299 L510 1297 L510 1287 L509 1286 L508 1273 L505 1268 L504 1263 L495 1247 L489 1240 L487 1236 L486 1236 L483 1232 L477 1220 L479 1218 L483 1210 L487 1208 L492 1198 L494 1196 L500 1186 L503 1183 L509 1173 L512 1170 L515 1164 L516 1158 L517 1157 L517 1146 L516 1145 L515 1138 L512 1133 L512 1131 L507 1125 L506 1125 L501 1120 L500 1120 L492 1114 L490 1114 L487 1112 L482 1112Z"/>
+<clipPath id="glassClip"><use href="#glassOutline"/></clipPath>
+<clipPath id="topChamber"><rect x="410" y="1100" width="120" height="120"/></clipPath>
+<clipPath id="bottomChamber"><rect x="410" y="1220" width="120" height="120"/></clipPath>
+<radialGradient id="chamber" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(470 1210) rotate(90) scale(130 68)">
+<stop stop-color="#2e2418" stop-opacity=".72"/><stop offset=".54" stop-color="#0c1116" stop-opacity=".92"/><stop offset="1" stop-color="#060708" stop-opacity=".99"/></radialGradient>
+<linearGradient id="sand" x1="450" y1="1115" x2="493" y2="1331" gradientUnits="userSpaceOnUse">
+<stop stop-color="#fff1bd"/><stop offset=".24" stop-color="#e6c780"/><stop offset=".58" stop-color="#d8af60"/><stop offset="1" stop-color="#9e6a2e"/></linearGradient>
+<linearGradient id="sandRidge" x1="425" y1="0" x2="515" y2="0" gradientUnits="userSpaceOnUse">
+<stop stop-color="#b4833f"/><stop offset=".20" stop-color="#fce4ac"/><stop offset=".45" stop-color="#eacb83"/><stop offset=".70" stop-color="#b7853f"/><stop offset="1" stop-color="#8c5f2e"/></linearGradient>
+<linearGradient id="gloss" x1="431" y1="1140" x2="510" y2="1308" gradientUnits="userSpaceOnUse">
+<stop stop-color="#fff8e9" stop-opacity=".27"/><stop offset=".28" stop-color="#c4e4f4" stop-opacity=".055"/><stop offset=".58" stop-color="#e8d5ab" stop-opacity=".03"/><stop offset="1" stop-color="#e1f3fb" stop-opacity=".21"/></linearGradient>
+<linearGradient id="edge" x1="424" y1="1200" x2="518" y2="1200" gradientUnits="userSpaceOnUse">
+<stop stop-color="#f6f8e7" stop-opacity=".68"/><stop offset=".24" stop-color="#fff4cb" stop-opacity=".12"/><stop offset=".72" stop-color="#bddbf4" stop-opacity=".10"/><stop offset="1" stop-color="#cce8fb" stop-opacity=".55"/></linearGradient>
+<linearGradient id="streamGold" x1="467" y1="1220" x2="474" y2="1300" gradientUnits="userSpaceOnUse">
+<stop stop-color="#fdf2ce"/><stop offset=".5" stop-color="#efd093"/><stop offset="1" stop-color="#be8e4b"/></linearGradient>
+<filter id="grainGlow" x="-80%" y="-40%" width="260%" height="180%"><feGaussianBlur stdDeviation=".65"/></filter>
+</defs>
+<g clip-path="url(#glassClip)">
+<use href="#glassOutline" fill="url(#chamber)"/>
+<g clip-path="url(#topChamber)">
+<path d="M416 -2 Q440 -7 470 -3 Q497 -7 524 -2 V138 H416Z" fill="url(#sand)" transform="translate(0 1118)">
+<animateTransform attributeName="transform" type="translate" values="0 1118;0 1118;0 1213;0 1213;0 1118" keyTimes="0;.06;.87;.96;1" dur="10s" repeatCount="indefinite"/></path>
+</g>
+<g clip-path="url(#bottomChamber)">
+<path d="M416 8 C444 9 451 1 470 -3 C489 1 497 9 524 8 V146 H416Z" fill="url(#sandRidge)" transform="translate(0 1321)">
+<animateTransform attributeName="transform" type="translate" values="0 1321;0 1321;0 1234;0 1234;0 1321" keyTimes="0;.06;.87;.96;1" dur="10s" repeatCount="indefinite"/></path>
+</g>
+<g clip-path="url(#bottomChamber)">
+<path d="M470 1218 Q470.4 1251 470 1325" stroke="#f4dc9c" stroke-width="2.3" stroke-linecap="round" opacity=".55" filter="url(#grainGlow)"/>
+<path d="M470 1218 Q470.4 1251 470 1325" stroke="url(#streamGold)" stroke-width="1.5" stroke-linecap="round">
+<animate attributeName="opacity" values="0;1;1;0;0" keyTimes="0;.07;.86;.9;1" dur="10s" repeatCount="indefinite"/></path>
+<g fill="#fff3cd">
+<circle cx="469.3" cy="1219" r="1.45"><animate attributeName="cy" values="1219;1323" dur=".68s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" dur=".68s" repeatCount="indefinite"/></circle>
+<circle cx="471" cy="1220" r=".95"><animate attributeName="cy" values="1220;1322" dur=".84s" begin="-.4s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" dur=".84s" begin="-.4s" repeatCount="indefinite"/></circle>
+<circle cx="469.8" cy="1219" r="1.1"><animate attributeName="cy" values="1219;1323" dur=".75s" begin="-.27s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" dur=".75s" begin="-.27s" repeatCount="indefinite"/></circle>
+<circle cx="470.5" cy="1220" r=".7"><animate attributeName="cy" values="1220;1323" dur=".63s" begin="-.15s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;1;0" dur=".63s" begin="-.15s" repeatCount="indefinite"/></circle>
+</g>
+</g>
+<use href="#glassOutline" fill="url(#gloss)"/>
+<path d="M445 1125 Q427 1144 433 1163 Q440 1181 453 1198 Q466 1216 465 1218 Q452 1242 439 1263 Q433 1277 434 1292" stroke="#fffced" stroke-opacity=".53" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+<path d="M492 1125 Q513 1149 503 1170 Q491 1192 476 1215 M482 1238 Q498 1267 504 1288" stroke="#c6e3f5" stroke-opacity=".35" stroke-width="1.9" stroke-linecap="round" fill="none"/>
+<path d="M447 1132 Q435 1150 439 1165 M441 1286 Q445 1305 457 1317" stroke="#fff0c6" stroke-opacity=".24" stroke-width="5" stroke-linecap="round" fill="none"/>
+<path d="M497 1155 Q493 1173 486 1186 M489 1254 Q502 1272 501 1292" stroke="#f5feff" stroke-opacity=".2" stroke-width="3" stroke-linecap="round" fill="none"/>
+<path d="M431 1165 Q437 1173 445 1186" stroke="#ffffff" stroke-opacity=".4" stroke-width="1" stroke-linecap="round" fill="none"/>
+<ellipse cx="450" cy="1133" rx="5" ry="1.5" fill="#fff8dc" opacity=".20" transform="rotate(-20 450 1133)"/>
+<ellipse cx="487" cy="1313" rx="6" ry="2" fill="#ffffff" opacity=".15" transform="rotate(-25 487 1313)"/>
+</g>
+<use href="#glassOutline" stroke="url(#edge)" stroke-width="1.55" fill="none"/>
+</svg>
