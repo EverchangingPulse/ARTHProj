@@ -55,9 +55,35 @@ Open **Actions → Deploy Telegram Bot Worker → Run workflow**. Set `worker_ur
 
 If the first run uses the wrong Worker URL, run the workflow again with the correct address. A successful setup writes `Commands registered. Telegram webhook configured at …` to the action logs.
 
-### 3. Configure the Telegram app button
+### 3. Publish the AR frontend on the original Cloudflare origin
 
-In BotFather, use `/setmenubutton` and enter `https://everchangingpulse.github.io/ARTHProj/` once Pages is live. You can also enable **Main Mini App** under **Bot Settings → Configure Mini App**. By default, the group `/ar` button opens the AR website directly, without requiring a Main Mini App. If your Main Mini App is configured, you can optionally add `GROUP_LAUNCH_URL = "https://t.me/RomanInscriptionAR_bot?startapp"` under `[vars]` in `worker/wrangler.toml`, then redeploy to launch it through Telegram.
+The Telegram Mini App uses `https://ar.daviedeiana5.workers.dev/`,
+the hostname that previously worked with the Telegram Android camera.
+This is a **separate Worker** named `ar`, not the Telegram webhook Worker
+named `arthproj-telegram-bot`.
+
+The workflow [Publish Speculum Arcana Mini App to Cloudflare](.github/workflows/deploy-ar-miniapp.yml)
+publishes `docs/` to Cloudflare Workers Static Assets, updates the Telegram
+bot Worker's `AR_URL` variable, and uses `TELEGRAM_BOT_TOKEN` to configure
+the bot chat menu when available.
+
+The workflow needs `CLOUDFLARE_API_TOKEN` (permission to edit/deploy Workers)
+and `CLOUDFLARE_ACCOUNT_ID` as GitHub Actions repository secrets. Add these
+under **Settings → Secrets and variables → Actions**, then run the workflow
+from GitHub **Actions**. Without the secrets, deployment cannot proceed.
+
+For the profile-level **Main Mini App**, set the same Cloudflare URL in
+BotFather separately. The Bot API can configure the chat menu but not the
+profile-level Main Mini App URL.
+
+The AR frontend detects Telegram Mini App launches and defers the camera
+start until the first tap after preparation, so the permission request
+runs inside a user gesture. This is a compatibility workaround; Telegram
+Android WebView must still permit camera access.
+
+### 4. Configure the Telegram app button
+
+In BotFather, use `/setmenubutton` and enter `https://ar.daviedeiana5.workers.dev/` after the Cloudflare frontend deployment succeeds. You can also enable **Main Mini App** under **Bot Settings → Configure Mini App**. By default, the group `/ar` button opens the AR website directly, without requiring a Main Mini App. If your Main Mini App is configured, you can optionally add `GROUP_LAUNCH_URL = "https://t.me/RomanInscriptionAR_bot?startapp"` under `[vars]` in `worker/wrangler.toml`, then redeploy to launch it through Telegram.
 
 ### 4. Add the bot to your Telegram group
 
@@ -73,7 +99,7 @@ Edit `worker/wrangler.toml`:
 - `BOT_USERNAME`: the bot's username, without the leading `@`.
 - `GROUP_LAUNCH_URL`: optional Main Mini App link for group buttons; delete it to use `AR_URL`.
 
-`AR_URL` now points to `https://everchangingpulse.github.io/ARTHProj/` in `worker/wrangler.toml`. Enable Pages and verify that the camera loads before deploying the bot.
+`AR_URL` now points to `https://ar.daviedeiana5.workers.dev/` in `worker/wrangler.toml`. GitHub Pages remains a browser-friendly mirror. Cloudflare publishes the same `docs/` directory for Telegram.
 
 To test locally with Node.js 22 or newer:
 
