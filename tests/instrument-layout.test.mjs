@@ -107,3 +107,25 @@ test("landscape resize preserves all photographic HUD elements without cropping"
   assert.equal(second.mode,"portrait");
   assert.deepEqual(first,third);
 });
+
+test("photographic compass is aligned to the actual brass housing, not the older alpha-cutout center", async () => {
+  const { PHOTOGRAPHIC_INSTRUMENTS } = await import("../docs/instrument-layout.js");
+  const portrait = PHOTOGRAPHIC_INSTRUMENTS.portrait.compass;
+  const landscape = PHOTOGRAPHIC_INSTRUMENTS.landscape.compass;
+  assert.deepEqual(portrait, { x: 210, y: 1253, radius: 102 });
+  assert.deepEqual(landscape, { x: 152, y: 241, radius: 68 });
+  assert.ok(portrait.y > 1238);
+  assert.ok(landscape.x > 141);
+  assert.ok(portrait.radius > 86 && landscape.radius > 55);
+});
+
+test("portrait and landscape compass stay centered after their image contain transform", async () => {
+  const { PHOTOGRAPHIC_INSTRUMENTS } = await import("../docs/instrument-layout.js");
+  for (const [width, height] of [[390,844],[691,1280],[844,390],[1280,720],[600,300]]) {
+    const layout = calculateInstrumentLayout(width,height,"photographic");
+    const compass = PHOTOGRAPHIC_INSTRUMENTS[layout.mode].compass;
+    assert.ok(Math.abs(layout.compass.x - (layout.offsetX + compass.x*layout.scale)) < 1e-8);
+    assert.ok(Math.abs(layout.compass.y - (layout.offsetY + compass.y*layout.scale)) < 1e-8);
+    assert.ok(Math.abs(layout.compass.diameter - 2*compass.radius*layout.scale) < 1e-8);
+  }
+});

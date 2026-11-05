@@ -110,3 +110,7 @@ The default settings are `compass.preferTrueNorth: false` and `compass.requestLo
 ## Exact artwork-to-compass registration on rotation
 
 The frame and compass now share a single `object-fit: contain` transform: `Math.min(viewportWidth / assetWidth, viewportHeight / assetHeight)`, with the resulting centered offsets. This keeps the full portrait/landscape photographic chassis visible, including the top and bottom in short browser viewports. The wood-toned side panels fill any remaining landscape margins without distorting the instrument. The compass is registered to the native transparent opening (portrait: 207×1238, radius 86; landscape: 141×234, radius 55), rather than being scaled independently against the screen. Orientation changes schedule additional layout updates after the browser has settled its viewport dimensions. Mobile browser navigation bars are outside the page and may still be present unless the host grants fullscreen.
+
+## Photographic compass calibration (8.1)
+
+The opaque brass ring and the transparent WebP compass cutout are not perfectly concentric. Calibrated from the photographed brass housing, the portrait wind-rose anchor is at `(210, 1253)` with radius `102` in the 941 × 1672 image; landscape uses `(152, 241)` and radius `68` in the 1200 × 650 image. The image is expanded symmetrically to 126% inside the anchored circular viewport, keeping rotation centered while making the visible rose fill more of the opening. The WebP artwork and camera aperture remain unchanged.

@@ -18,13 +18,13 @@ export const PHOTOGRAPHIC_INSTRUMENTS = Object.freeze({
     width: 941,
     height: 1672,
     dial: Object.freeze({ x: 466, y: 715, radius: 289 }),
-    compass: Object.freeze({ x: 207, y: 1238, radius: 86 })
+    compass: Object.freeze({ x: 210, y: 1253, radius: 102 })
   }),
   landscape: Object.freeze({
     width: 1200,
     height: 650,
     dial: Object.freeze({ x: 602, y: 330, radius: 245 }),
-    compass: Object.freeze({ x: 141, y: 234, radius: 55 })
+    compass: Object.freeze({ x: 152, y: 241, radius: 68 })
   })
 });
 

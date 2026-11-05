@@ -135,3 +135,7 @@ The photographic compass dial now fills the inset brass aperture and remains cen
 ## Responsive framing correction
 
 Landscape mode preserves the complete frame with `object-fit: contain`, rather than cropping its decorative fittings. The compass and photographic artwork now use exactly the same measured transform, and rotation schedules additional measurements to accommodate changing browser chrome. Any horizontal letterboxing is finished with dark wooden side rails. The existing camera and symbol capture are not modified.
+
+### Compass calibration v8.1
+
+Adjusted the wind-rose position against the physical brass rings instead of the off-center transparent cutout. Increased dial scale and added regression tests for portrait/landscape positioning. The photographic assets and camera recognition are unchanged.

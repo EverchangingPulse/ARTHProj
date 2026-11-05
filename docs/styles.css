@@ -126,10 +126,10 @@ a-scene canvas { display: block; }
 .compass-casing img {
   position: absolute;
   display: block;
-  width: 106%;
-  height: 106%;
-  left: -3%;
-  top: -3%;
+  width: 126%;
+  height: 126%;
+  left: -13%;
+  top: -13%;
   object-fit: contain;
   transform-origin: 50% 50%;
   will-change: transform;
