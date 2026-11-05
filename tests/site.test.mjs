@@ -373,12 +373,17 @@ test("photographic image must contain transparent camera and compass apertures w
   }
 });
 
-test("compass dial is magnified concentrically to fill the photographed brass aperture", () => {
+test("blue enamel disc and wind rose form one centered, rotating compass face", () => {
   const css = text("styles.css");
   const html = text("index.html");
   const app = text("ar-app.js");
-  assert.match(css, /\.compass-casing img \{[^}]+width: 126%;[^}]+height: 126%;[^}]+left: -13%;[^}]+top: -13%;[^}]+transform-origin: 50% 50%;/s);
-  assert.match(html, /id="wind-rose"/);
+  const svg = text("assets/wind-rose.svg");
+  assert.match(html, /<div id="wind-rose" class="compass-rotor">\s*<img src="\.\/assets\/wind-rose\.svg\?v=9\.1\.0"/);
+  assert.match(css, /\.compass-rotor \{[^}]+inset: 0;[^}]+width: 100%;[^}]+height: 100%;[^}]+transform-origin: 50% 50%;/s);
+  assert.match(css, /\.compass-rotor img \{[^}]+inset: 0;[^}]+width: 100%;[^}]+height: 100%;/s);
+  assert.doesNotMatch(css, /\.compass-casing img \{[^}]+126%/s);
+  assert.match(svg, /cx="120" cy="120" r="120" fill="url\(#enamel\)"/);
+  assert.doesNotMatch(svg, /<text/);
   assert.doesNotMatch(html, /scanner-radar|scanner-ring|scanner-sweep/);
   assert.doesNotMatch(css, /turn-orbit|conic-gradient/);
   assert.doesNotMatch(app, /dataset\.style = settings\.scanner\.style/);
@@ -427,4 +432,18 @@ test("invalid relative instrument coordinates cannot be loaded", async () => {
       }
     }
   }), /instrument\.photographic\.portrait\.compass\.centerX/);
+});
+
+test("compass blue circle remains centered as portrait and landscape artwork scale", () => {
+  const settings = json("config/settings.json");
+  const svg = text("assets/wind-rose.svg");
+  const css = text("styles.css");
+  assert.deepEqual(settings.instrument.photographic.portrait.compass, {
+    centerX: 0.219979, centerY: 0.740431, diameter: 0.185972
+  });
+  assert.deepEqual(settings.instrument.photographic.landscape.compass, {
+    centerX: 0.1175, centerY: 0.36, diameter: 0.0925
+  });
+  assert.match(css, /\.compass-rotor \{[^}]+border-radius: 50%;/s);
+  assert.match(svg, /cx="120" cy="120" r="120"/);
 });

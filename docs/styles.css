@@ -97,30 +97,42 @@ a-scene canvas { display: block; }
 .embedded-compass {
   position: absolute;
   z-index: 0;
-  left: var(--compass-center-x, 22.317%);
-  top: var(--compass-center-y, 74.94%);
-  width: var(--compass-diameter, 21.679%);
+  left: var(--compass-center-x, 21.998%);
+  top: var(--compass-center-y, 74.043%);
+  width: var(--compass-diameter, 18.6%);
   aspect-ratio: 1;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  padding: 0;
   overflow: hidden;
+  padding: 0;
   pointer-events: none;
-  background: radial-gradient(circle, #264871 15%, #09111e 100%);
-  box-shadow: inset 0 0 5px rgba(0,0,0,.5);
 }
 .embedded-compass.compass-concealed { visibility: hidden; }
-.compass-casing { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: 50%; }
-.compass-casing img {
+.compass-casing {
   position: absolute;
-  display: block;
-  width: 126%;
-  height: 126%;
-  left: -13%;
-  top: -13%;
-  object-fit: contain;
+  inset: 0;
+  overflow: hidden;
+  border-radius: 50%;
+}
+.compass-rotor {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   transform-origin: 50% 50%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 45% 34%, #2a5481 0%, #132e50 62%, #071626 100%);
   will-change: transform;
+}
+.compass-rotor img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 .compass-hinge, .latch-clasp { display: none; }
 .glass-lens {

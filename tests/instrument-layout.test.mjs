@@ -101,3 +101,23 @@ test("browser fullscreen gesture fallback still works", () => {
     else globalThis.document = oldDocument;
   }
 });
+
+test("photographic compass anchors follow normalized alpha-aperture centers at all screen sizes", () => {
+  const portrait = settings.instrument.photographic.portrait;
+  const landscape = settings.instrument.photographic.landscape;
+  assert.ok(Math.abs(portrait.compass.centerX - 207 / 941) < 1e-6);
+  assert.ok(Math.abs(portrait.compass.centerY - 1238 / 1672) < 1e-6);
+  assert.ok(Math.abs(landscape.compass.centerX - 141 / 1200) < 1e-6);
+  assert.ok(Math.abs(landscape.compass.centerY - 234 / 650) < 1e-6);
+  for (const [width,height,aspect,config] of [
+    [390,844,941 / 1672,portrait],
+    [1080,2340,941 / 1672,portrait],
+    [844,390,1200 / 650,landscape],
+    [1920,1080,1200 / 650,landscape]
+  ]) {
+    const rendered = calculateInstrumentLayout(width,height,aspect,config);
+    assert.equal(rendered.compass.centerX, config.compass.centerX);
+    assert.equal(rendered.compass.centerY, config.compass.centerY);
+    assert.equal(rendered.compass.diameter, config.compass.diameter);
+  }
+});

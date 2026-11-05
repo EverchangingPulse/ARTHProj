@@ -35,9 +35,9 @@
           "scale": 1
         },
         "compass": {
-          "centerX": 0.22317,
-          "centerY": 0.7494,
-          "diameter": 0.21679
+          "centerX": 0.219979,
+          "centerY": 0.740431,
+          "diameter": 0.185972
         }
       },
       "landscape": {
@@ -47,9 +47,9 @@
           "scale": 1
         },
         "compass": {
-          "centerX": 0.12667,
-          "centerY": 0.37077,
-          "diameter": 0.11333
+          "centerX": 0.1175,
+          "centerY": 0.36,
+          "diameter": 0.0925
         }
       }
     },

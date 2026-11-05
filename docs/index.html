@@ -7,7 +7,7 @@
   <meta name="description" content="An enchanted Renaissance instrument revealing forgotten symbols.">
   <title>Speculum Arcana</title>
   <link rel="icon" href="./assets/icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css?v=9.0.0">
+  <link rel="stylesheet" href="./styles.css?v=9.1.0">
   <link rel="manifest" href="./manifest.webmanifest">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image.prod.js"></script>
@@ -30,7 +30,9 @@
         <aside id="compass-panel" class="compass-panel embedded-compass" hidden aria-label="Rosa dei venti beneath glass">
           <div class="compass-hinge" aria-hidden="true"></div>
           <div class="compass-casing">
-            <img id="wind-rose" src="./assets/wind-rose.svg" alt="" draggable="false">
+            <div id="wind-rose" class="compass-rotor">
+              <img src="./assets/wind-rose.svg?v=9.1.0" alt="" draggable="false">
+            </div>
             <span class="glass-lens" aria-hidden="true"></span>
             <span class="lens-pointer" aria-hidden="true"></span>
             <span class="lens-pivot" aria-hidden="true"></span>
@@ -59,6 +61,6 @@
     <div class="camera-vignette" aria-hidden="true"></div>
     <div id="sr-status" class="visually-hidden" role="status" aria-live="polite"></div>
   </main>
-  <script type="module" src="./ar-app.js?v=9.0.0"></script>
+  <script type="module" src="./ar-app.js?v=9.1.0"></script>
 </body>
 </html>

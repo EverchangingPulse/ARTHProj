@@ -122,3 +122,7 @@ Both HUD artwork and its rotating compass now share **one DOM parent**, `#instru
 Edit `docs/config/settings.json` under `instrument.photographic.portrait`, `instrument.photographic.landscape`, `instrument.illustrated.portrait` and `instrument.illustrated.landscape` to calibrate geometry without changing JavaScript or committing new assets. The illustrated entries apply only if the corresponding photographic WebP fails to load. Adjusting a configuration ratio updates the artwork and compass together after a reload.
 
 This replaces the earlier pixel-coordinate specifications documented above.
+
+## Unified rotating compass face (9.1)
+
+Both the rose and blue enamel disc are now a single centered rotor inside the compass viewport, rather than a rose enlarged independently above a stationary blue backing. The photographic HUD remains fixed while the full rotor turns under the glass overlay. The CSS rotor is exactly 100% of the compass housing in both axes, with no offsets or overflow scaling. Compass calibration uses normalized coordinates derived from each photographic asset's transparent aperture: portrait center (207/941, 1238/1672) and landscape center (141/1200, 234/650). Diameters include a small overlap underneath the stationary brass lip to avoid visible seams. These numbers live only as relative proportions in `settings.json` and scale with the same frame as the artwork.
