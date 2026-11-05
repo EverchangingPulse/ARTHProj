@@ -139,8 +139,8 @@ test("astrolabe scanner is a transparent vector asset with a moving sextant arm"
   const app = text("ar-app.js");
   const css = text("styles.css");
   const svg = text("assets/astrolabe-scanner.svg");
-  assert.match(html, /id="portrait-instrument"[^>]+src="\.\/assets\/hud-portrait\.webp"/);
-  assert.match(html, /id="landscape-instrument"[^>]+src="\.\/assets\/hud-landscape\.webp"/);
+  assert.match(html, /id="portrait-instrument"[^>]+src="\.\/assets\/hud-portrait\.webp\?v=10\.0\.0"/);
+  assert.match(html, /id="landscape-instrument"[^>]+src="\.\/assets\/hud-landscape\.webp\?v=10\.0\.0"/);
   assert.match(text("instrument-artwork.js"), /astrolabe-portrait\.svg/);
   assert.match(text("instrument-artwork.js"), /astrolabe-landscape\.svg/);
   assert.doesNotMatch(html, /scanner-radar|scanner-ring|scanner-sweep|data-style/);
