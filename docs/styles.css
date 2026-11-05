@@ -89,6 +89,15 @@ a-scene canvas { display: block; }
   user-select: none;
   -webkit-user-drag: none;
 }
+.camera-stage[data-instrument-mode="portrait"]:not([data-frameportrait="illustrated"]) .portrait-instrument {
+  -webkit-mask-image: url("./assets/portrait-amber-cutout-mask.svg?v=11.6.0");
+  mask-image: url("./assets/portrait-amber-cutout-mask.svg?v=11.6.0");
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  mask-mode: alpha;
+}
 .landscape-instrument { display: none; }
 .camera-stage[data-instrument-mode="landscape"] .portrait-instrument { display: none; }
 .camera-stage[data-instrument-mode="landscape"] .landscape-instrument { display: block; }
@@ -135,10 +144,22 @@ a-scene canvas { display: block; }
 .camera-stage[data-frameportrait="illustrated"] .hourglass-instrument {
   display: none;
 }
+.amber-lens-camera {
+  position: absolute;
+  left: 14.134%;
+  top: 9.3301%;
+  width: 18.7035%;
+  height: 10.6459%;
+  z-index: 3;
+  display: block;
+  clip-path: ellipse(50% 50% at 50% 50%);
+  filter: sepia(.55) saturate(1.4) brightness(.95);
+  pointer-events: none;
+}
 .amber-lens-instrument {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: 4;
   display: block;
   width: 100%;
   height: 100%;
@@ -148,7 +169,9 @@ a-scene canvas { display: block; }
   -webkit-user-drag: none;
 }
 .camera-stage[data-instrument-mode="landscape"] .amber-lens-instrument,
-.camera-stage[data-frameportrait="illustrated"] .amber-lens-instrument {
+.camera-stage[data-frameportrait="illustrated"] .amber-lens-instrument,
+.camera-stage[data-instrument-mode="landscape"] .amber-lens-camera,
+.camera-stage[data-frameportrait="illustrated"] .amber-lens-camera {
   display: none;
 }
 .embedded-compass.compass-concealed { visibility: hidden; }
